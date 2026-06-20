@@ -41,7 +41,7 @@ body {
 
 #top-bar h1 { font-size: 18px; }
 
-#top-bar span { font-size: 14px; color: var(--text-dim); }
+#difficulty-display, #coins-display { font-size: 14px; color: var(--text-dim); }
 
 #game-area {
   display: flex;
@@ -192,6 +192,25 @@ body {
 /* Responsive */
 @media (max-width: 700px) {
   #sidebar { width: 160px; font-size: 12px; }
+}
+
+@media (max-width: 500px) {
+  #game-area {
+    flex-direction: column;
+  }
+  #sidebar {
+    width: 100%;
+    max-height: 30vh;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+  }
+  .panel {
+    flex: 1;
+    min-width: 100px;
+    padding: 8px;
+  }
 }
 
 /* Animations */
