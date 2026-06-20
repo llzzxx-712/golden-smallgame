@@ -174,8 +174,8 @@ function moveTo(nodeId) {
     for (const nid of newRevealed) state.revealedNodes.add(nid);
   }
 
-  // 检查口渴/饥饿 (可能返回要展示的事件)
-  const thirstEvents = checkThirstHunger(state);
+  // 检查口渴/饥饿
+  const thirstEvent = checkThirstHunger(state);
   if (checkDead(state)) {
     reputation.stats.gamesPlayed++;
     reputation.stats.deaths++;
@@ -184,8 +184,8 @@ function moveTo(nodeId) {
     updateUI();
     return;
   }
-  if (thirstEvents && thirstEvents.length > 0) {
-    showSurvivalEvents(thirstEvents, 0, () => {
+  if (thirstEvent) {
+    showEventModal(thirstEvent, () => {
       if (checkDead(state)) {
         reputation.stats.gamesPlayed++;
         reputation.stats.deaths++;
@@ -201,6 +201,7 @@ function moveTo(nodeId) {
 
   handleNodeArrival(targetNode);
 }
+
 
 function handleNodeArrival(targetNode) {
   const p = state.player;
@@ -294,7 +295,7 @@ function doRest() {
   p.food = Math.max(0, p.food - 1);
   state.turn++;
 
-  const thirstEvents = checkThirstHunger(state);
+  const thirstEvent = checkThirstHunger(state);
   if (checkDead(state)) {
     reputation.stats.gamesPlayed++;
     reputation.stats.deaths++;
@@ -303,8 +304,8 @@ function doRest() {
     updateUI();
     return;
   }
-  if (thirstEvents && thirstEvents.length > 0) {
-    showSurvivalEvents(thirstEvents, () => {
+  if (thirstEvent) {
+    showEventModal(thirstEvent, () => {
       if (checkDead(state)) {
         reputation.stats.gamesPlayed++;
         reputation.stats.deaths++;
@@ -815,41 +816,6 @@ window._afterIntro = () => {
 };
 
 window._showGuide = showGuide;
-
-let _survivalEvents = null;
-let _survivalIndex = 0;
-let _survivalDone = null;
-
-function showNextSurvival() {
-  if (_survivalIndex >= _survivalEvents.length) {
-    _survivalEvents = null;
-    if (_survivalDone) { const cb = _survivalDone; _survivalDone = null; cb(); }
-    return;
-  }
-  const ev = _survivalEvents[_survivalIndex];
-  _survivalIndex++;
-  const icon = ev.type === 'thirst' ? '💧' : '🍖';
-  showModal(`
-    <div style="text-align:center;margin-bottom:16px">
-      <span style="font-size:40px;display:block;margin-bottom:8px">${icon}</span>
-      <h2 style="color:var(--danger);margin:0">😨 ${ev.name}</h2>
-      <p style="color:var(--text);font-size:15px;line-height:1.6;margin-top:8px">${ev.desc}</p>
-      <div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;font-size:14px;color:var(--danger)">
-        ❤️ HP -${ev.hpLoss}
-      </div>
-    </div>
-    <button class="primary" onclick="window._hideModal();window._survNext()" style="width:100%;padding:12px;font-size:16px">确定</button>
-  `);
-}
-
-function showSurvivalEvents(events, onDone) {
-  _survivalEvents = events;
-  _survivalIndex = 0;
-  _survivalDone = onDone;
-  showNextSurvival();
-}
-
-window._survNext = showNextSurvival;
 
 // === 快速移动 ===
 function toggleQuickMove() {
