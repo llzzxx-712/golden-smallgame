@@ -1,12 +1,12 @@
 // 节点类型
 export const NODE_TYPES = {
-  camp:      { type: 'camp',      icon: '🏕️', label: '营地',    eventChance: 0 },
-  desert:    { type: 'desert',    icon: '🌵', label: '沙漠',    eventChance: 1 },
-  oasis:     { type: 'oasis',     icon: '💧', label: '绿洲',    eventChance: 0.5, goodBias: 0.2 },
-  ruins:     { type: 'ruins',     icon: '🏚️', label: '废墟',    eventChance: 0.8, goodBias: 0.15 },
-  caravan:   { type: 'caravan',   icon: '🐪', label: '商队',    eventChance: 0 },
-  goldMine:  { type: 'goldMine',  icon: '⛏️', label: '金矿',    eventChance: 0 },
-  sandstorm: { type: 'sandstorm', icon: '🌪️', label: '沙暴',    eventChance: 0.9, goodBias: -0.4 },
+  camp:      { type: 'camp',      icon: '🏕',  label: '营地',  eventChance: 0 },
+  desert:    { type: 'desert',    icon: '🌵',  label: '沙漠',  eventChance: 1 },
+  oasis:     { type: 'oasis',     icon: '💧',  label: '绿洲',  eventChance: 0.5, goodBias: 0.2 },
+  ruins:     { type: 'ruins',     icon: '🏚',  label: '废墟',  eventChance: 0.8, goodBias: 0.15 },
+  caravan:   { type: 'caravan',   icon: '🐪',  label: '商队',  eventChance: 0 },
+  goldMine:  { type: 'goldMine',  icon: '⛏',  label: '金矿',  eventChance: 0 },
+  sandstorm: { type: 'sandstorm', icon: '🌪',  label: '沙暴',  eventChance: 0.9, goodBias: -0.4 },
 };
 
 function shuffle(arr) {
@@ -299,7 +299,7 @@ export function renderMap(canvas, map, state, revealedNodes = null) {
     ctx.lineWidth = isPlayer ? 3 : 2;
     ctx.stroke();
 
-    ctx.font = '18px sans-serif';
+    ctx.font = '18px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(n.icon, n.x, n.y);

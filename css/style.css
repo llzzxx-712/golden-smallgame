@@ -232,15 +232,37 @@ body {
   box-shadow: 0 0 12px rgba(240,192,64,0.4);
 }
 
+/* 地图提示 */
+.map-hint {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 40;
+  background: rgba(0,0,0,0.6);
+  color: var(--text-dim);
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0.5;
+  animation: hintFade 0.5s ease 10s forwards;
+}
+@keyframes hintFade {
+  to { opacity: 0.15; }
+}
+
 /* Responsive — 手机纵向堆叠 */
 @media (max-width: 700px) {
-  #app { min-width: 320px; }
+  body { height: auto; overflow-y: auto; }
+
+  #app { min-width: 320px; height: auto; }
 
   #top-bar { padding: 6px 10px; gap: 8px; }
   #top-bar h1 { font-size: 16px; }
 
   #game-area {
     flex-direction: column;
+    overflow-y: visible;
   }
 
   #map-container {
@@ -255,16 +277,16 @@ body {
     flex-shrink: 0;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
     padding: 6px;
-    overflow-y: auto;
+    overflow-y: visible;
     border-right: none;
     border-top: 2px solid var(--panel-border);
   }
 
   .panel {
     flex: 1 1 auto;
-    min-width: 120px;
+    min-width: 140px;
     padding: 8px;
   }
 

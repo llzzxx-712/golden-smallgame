@@ -542,6 +542,9 @@ function startGame() {
   addLog(state, `🟢 你选择了「${CHARACTERS[chosenCharacter].name}」，准备出发！`);
   saveGame(state);
   updateUI();
+  // 重置地图提示动画
+  const hint = document.getElementById('map-hint');
+  if (hint) { hint.style.animation = 'none'; hint.offsetHeight; hint.style.animation = ''; }
 }
 
 let shopItemsCache = null;
@@ -627,6 +630,8 @@ function resumeGame() {
   reputation = loadReputation();
   hideModal();
   updateUI();
+  const hint = document.getElementById('map-hint');
+  if (hint) { hint.style.animation = 'none'; hint.offsetHeight; hint.style.animation = ''; }
 }
 
 function unlockChar(charId) {
@@ -817,13 +822,13 @@ canvas.addEventListener('click', (e) => {
 
 function getNodeDesc(node) {
   const descs = {
-    camp: '起点和终点，可购买物资',
-    desert: '通过沙漠，随机触发事件',
-    oasis: '免费补水，可采摘果实',
-    ruins: '探索可能发现金币',
-    caravan: '遇到商队，价格浮动',
-    goldMine: '挖金80~120金币',
-    sandstorm: '危险！到达即扣10HP，休息可能扣体力',
+    camp: '起点·终点 | 可购买物资与休息',
+    desert: '随机事件 | 休息恢复0.5体力',
+    oasis: '免费补水+2(净水片+4) | 可采摘果实 | 休息恢复1.5体力',
+    ruins: '50%概率发现15金币 | 随机事件',
+    caravan: '买卖物资 | 价格在60%~140%浮动 | 仅售水袋/干粮/药品/帐篷',
+    goldMine: '挖得80~120金币 | 地质学家+30%',
+    sandstorm: '⚠到达即扣10HP | 休息-0.5体力 | 无帐篷体力归零即死',
   };
   return descs[node.type] || '';
 }
