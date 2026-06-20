@@ -745,31 +745,31 @@ function showGuide() {
 
       <h3>📊 资源</h3>
       <table style="width:100%;font-size:13px">
-        <tr><td>💧 水</td><td>每步消耗1(游牧民-20%)，归零后进入口渴阶段</td></tr>
-        <tr><td>🍖 食物</td><td>每步消耗1(游牧民-20%)，归零后进入饥饿阶段</td></tr>
-        <tr><td>❤️ HP</td><td>受伤扣减，归零死亡</td></tr>
-        <tr><td>⚡ 体力</td><td>每步消耗1(骆驼0.5)，归零无法移动</td></tr>
-        <tr><td>💰 金币</td><td>购买物资，挖金获取(80~120，地质学家+30%)</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">💧 水</td><td>每步消耗1(游牧民-20%)，归零后进入口渴阶段</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🍖 食物</td><td>每步消耗1(游牧民-20%)，归零后进入饥饿阶段</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">❤️ HP</td><td>受伤扣减，归零死亡</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">⚡ 体力</td><td>每步消耗1(骆驼0.5)，归零无法移动</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">💰 金币</td><td>购买物资，挖金获取(80~120，地质学家+30%)</td></tr>
       </table>
       <p style="color:var(--danger);font-size:12px">⚠ 口渴/饥饿阶段：第1次归零仅提醒 → 第2次-30HP弹窗 → 第3次-60HP弹窗 → 第4次死亡。补充水粮后重置。</p>
 
       <h3>🛒 道具</h3>
       <table style="width:100%;font-size:13px">
-        <tr><td>💧 水袋 +3水</td><td>💰20</td><td>💊 药品 +30HP</td><td>💰15</td></tr>
-        <tr><td>🍖 干粮 +3食物</td><td>💰20</td><td>⛺ 帐篷 休息+1.5</td><td>💰35</td></tr>
-        <tr><td>🐪 骆驼 体力减半</td><td>💰70</td><td>🧭 指南针 无限探查</td><td>💰45</td></tr>
-        <tr><td>💠 净水片 绿洲+2水</td><td>💰20</td><td>⛽ 燃油 3步免体力(可复购)</td><td>💰25</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">💧 水袋 +3水</td><td style="white-space:nowrap;padding-right:8px;color:var(--gold)">💰20</td><td style="white-space:nowrap;padding-right:8px">💊 药品 +30HP</td><td style="white-space:nowrap;color:var(--gold)">💰15</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🍖 干粮 +3食物</td><td style="white-space:nowrap;padding-right:8px;color:var(--gold)">💰20</td><td style="white-space:nowrap;padding-right:8px">⛺ 帐篷 休息+1.5</td><td style="white-space:nowrap;color:var(--gold)">💰35</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🐪 骆驼 体力减半</td><td style="white-space:nowrap;padding-right:8px;color:var(--gold)">💰70</td><td style="white-space:nowrap;padding-right:8px">🧭 指南针 无限探查</td><td style="white-space:nowrap;color:var(--gold)">💰45</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">💠 净水片 绿洲+2水</td><td style="white-space:nowrap;padding-right:8px;color:var(--gold)">💰20</td><td style="white-space:nowrap;padding-right:8px">⛽ 燃油 3步免体力(可复购)</td><td style="white-space:nowrap;color:var(--gold)">💰25</td></tr>
       </table>
 
       <h3>🗺️ 节点类型</h3>
       <table style="width:100%;font-size:13px">
-        <tr><td>🏕️ 营地</td><td>起点/终点，可购买物资与休息</td></tr>
-        <tr><td>🌵 沙漠</td><td>触发随机事件，休息恢复0.5体力</td></tr>
-        <tr><td>💧 绿洲</td><td>免费补水+2(净水片+4)，休息恢复1.5体力，可采摘果实(+1🍖-1💧)</td></tr>
-        <tr><td>🏚️ 废墟</td><td>50%找到15金币，触发随机事件</td></tr>
-        <tr><td>🐪 商队</td><td>交易物资(价格60%~140%浮动)，仅售水粮药品帐篷</td></tr>
-        <tr><td>🌪️ 沙暴</td><td>到达扣10HP，休息-0.5体力，无帐篷体力归零即死</td></tr>
-        <tr><td>⛏️ 金矿</td><td>挖得80~120金币(地质学家×1.3)</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🏕️ 营地</td><td>起点/终点，可购买物资与休息</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🌵 沙漠</td><td>触发随机事件，休息恢复0.5体力</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">💧 绿洲</td><td>免费补水+2(净水片+4)，休息恢复1.5体力，可采摘果实(+1🍖-1💧)</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🏚️ 废墟</td><td>50%找到15金币，触发随机事件</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🐪 商队</td><td>交易物资(价格60%~140%浮动)，仅售水粮药品帐篷</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">🌪️ 沙暴</td><td>到达扣10HP，休息-0.5体力，无帐篷体力归零即死</td></tr>
+        <tr><td style="white-space:nowrap;padding-right:8px">⛏️ 金矿</td><td>挖得80~120金币(地质学家×1.3)</td></tr>
       </table>
 
       <h3>💤 休息</h3>
