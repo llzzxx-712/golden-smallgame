@@ -25,6 +25,7 @@ export const EVENTS = {
     { id: 'broken_bag',    name: '水袋破损',    desc: '你不小心摔破了水袋！',                effect: { water: -3 } },
     { id: 'heatstroke',    name: '中暑',        desc: '烈日当头，你感到头晕目眩...',         effect: { hp: -15, stamina: -1 } },
     { id: 'snake_bite',    name: '毒蛇咬伤',    desc: '一条毒蛇从岩石下窜出咬了你！',        effect: { hp: -20 } },
+    { id: 'beast',         name: '遭遇野兽',    desc: '一只饥饿的沙漠野兽向你扑来！',        effect: { food: 2 }, orEffect: { hp: -30 }, orDesc: '你被野兽咬伤了，HP -30！', beastChance: 0.5 },
   ],
 };
 
@@ -74,7 +75,27 @@ export function applyEvent(state, event) {
   const char = CHARACTERS[p.character] || CHARACTERS.explorer;
   if (event.id === 'bandits' && char.effect?.combatWin) {
     addLog(state, '👊 作为老兵，你轻松击退了强盗！');
+    p._veteranKills = (p._veteranKills || 0) + 1;
     return;
+  }
+  if (event.id === 'beast' && char.effect?.combatWin) {
+    addLog(state, '👊 作为老兵，你轻松击退了野兽，还获得了肉！');
+    p.food = clamp(p.food + 2, 0, 999);
+    p._veteranKills = (p._veteranKills || 0) + 1;
+    return;
+  }
+
+  // 野兽概率判定
+  if (event.beastChance !== undefined) {
+    if (Math.random() < event.beastChance) {
+      addLog(state, '⚔️ 你击退了野兽，获得了食物！');
+      p.food = clamp(p.food + 2, 0, 999);
+      return;
+    } else {
+      addLog(state, `😨 ${event.orDesc || '你被野兽咬伤了...'}`);
+      p.hp = clamp(p.hp + (event.orEffect?.hp || 0), 0, p.maxHp);
+      return;
+    }
   }
 
   const eff = event.effect;

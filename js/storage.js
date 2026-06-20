@@ -11,6 +11,8 @@ export function createReputation() {
     totalReputation: 0,
     unlockedCharacters: ['explorer'],
     unlockedItems: [],
+    achievements: [],
+    lifetimeStats: { totalSteps: 0, veteranKills: 0, charWins: [], itemsBoughtThisRun: 0 },
     stats: { gamesPlayed: 0, wins: 0, deaths: 0, totalGoldMined: 0 },
   };
 }
@@ -83,7 +85,7 @@ export function settleReputation(state) {
     earned += Math.floor((p.coins || 0) / 10);
     earned += (p.water || 0) * 2;
     earned += (p.food || 0) * 2;
-    earned += Math.floor((p.hp || 0) * 0.5);
+    earned += Math.floor((p.hp || 0) * 0.3);
     earned += (p.items?.length || 0) * 5;
     earned += (p.visitedNodes?.length || 0) * 3;
   }

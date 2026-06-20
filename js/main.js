@@ -3,6 +3,7 @@ import { generateMap, renderMap, getAdjacentNodes, getNodeById, getNodesInRange 
 import { triggerEvent, applyEvent } from './events.js';
 import { getShopItems, buyItem } from './shop.js';
 import { saveGame, loadGame, clearSave, loadReputation, saveReputation, settleReputation, unlockCharacter } from './storage.js';
+import { checkAchievements } from './achievements.js';
 
 let state = null;
 let reputation = null;
@@ -183,6 +184,7 @@ function handleNodeArrival(targetNode) {
       const result = settleReputation(state);
       state.reputationEarned = result.earned;
       reputation = result.rep;
+      runAchievementCheck();
     } else {
       addLog(state, '你回到了营地。');
     }
@@ -219,6 +221,11 @@ function handleNodeArrival(targetNode) {
       p.coins += 15;
       addLog(state, '找到了 15 💰！');
     }
+  }
+
+  if (targetNode.type === 'sandstorm') {
+    p.hp = Math.max(0, p.hp - 10);
+    addLog(state, '🌪️ 沙暴肆虐，损失了 10 HP！');
   }
 
   const event = triggerEvent(state);
@@ -263,6 +270,7 @@ function doRest() {
     reputation.stats.deaths++;
     saveReputation(reputation);
     saveGame(state);
+    runAchievementCheck();
     updateUI();
     return;
   }
@@ -284,6 +292,7 @@ function doRest() {
     reputation.stats.deaths++;
     saveReputation(reputation);
     saveGame(state);
+    runAchievementCheck();
     updateUI();
     return;
   }
@@ -403,6 +412,40 @@ window._dismissEvent = () => {
     cb();
   }
 };
+
+// === 成就 ===
+function showAchievementToast(ach) {
+  const toast = document.getElementById('achievement-toast');
+  const nameEl = document.getElementById('ach-name');
+  toast.querySelector('.ach-icon').textContent = ach.icon;
+  nameEl.textContent = `${ach.name} — ${ach.desc} (+20⭐)`;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3200);
+}
+
+function runAchievementCheck() {
+  if (!state || !reputation) return;
+  reputation.lifetimeStats = reputation.lifetimeStats || {};
+  reputation.lifetimeStats.totalSteps = (reputation.lifetimeStats.totalSteps || 0) +
+    (state.player.visitedNodes?.length || 0);
+  reputation.lifetimeStats.veteranKills = Math.max(
+    reputation.lifetimeStats.veteranKills || 0,
+    state.player._veteranKills || 0
+  );
+  if (state.phase === 'win' && state.player.character) {
+    const charWins = reputation.lifetimeStats.charWins || [];
+    if (!charWins.includes(state.player.character)) {
+      charWins.push(state.player.character);
+      reputation.lifetimeStats.charWins = charWins;
+    }
+  }
+  const newAch = checkAchievements(reputation, state, reputation.lifetimeStats);
+  for (const ach of newAch) {
+    showAchievementToast(ach);
+    addLog(state, `🏆 成就解锁: ${ach.icon} ${ach.name} (+20⭐)`);
+  }
+  if (newAch.length > 0) saveReputation(reputation);
+}
 
 // === 弹窗 ===
 function showModal(html) {
@@ -595,6 +638,10 @@ window._openShop = (loc) => openShop(loc);
 window._buy = (itemId, location, price) => {
   const result = buyItem(state, itemId, location, price);
   addLog(state, result.message);
+  if (result.success && reputation) {
+    reputation.lifetimeStats = reputation.lifetimeStats || {};
+    reputation.lifetimeStats.itemsBoughtThisRun = (reputation.lifetimeStats.itemsBoughtThisRun || 0) + 1;
+  }
   openShop(location);
   updateUI();
 };

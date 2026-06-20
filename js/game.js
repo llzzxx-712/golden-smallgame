@@ -29,9 +29,9 @@ export const ITEM_TEMPLATES = {
 // 角色模板
 export const CHARACTERS = {
   explorer:    { id: 'explorer',    name: '探险家',  icon: '🧑', cost: 0,   desc: '标准属性，无特殊能力' },
-  geologist:   { id: 'geologist',   name: '地质学家', icon: '👩‍🔬', cost: 80,  desc: '挖金收益 +30%', effect: { goldBonus: 0.3 } },
-  nomad:       { id: 'nomad',       name: '游牧民',   icon: '🧕', cost: 100, desc: '水和食物消耗 -20%', effect: { consumeReduce: 0.2 } },
-  veteran:     { id: 'veteran',     name: '老兵',     icon: '👨‍🚀', cost: 120, desc: 'HP +30，战斗事件必胜', effect: { hpBonus: 30, combatWin: true } },
+  geologist:   { id: 'geologist',   name: '地质学家', icon: '👩‍🔬', cost: 240, desc: '挖金收益 +30%', effect: { goldBonus: 0.3 } },
+  nomad:       { id: 'nomad',       name: '游牧民',   icon: '🧕', cost: 300, desc: '水和食物消耗 -20%', effect: { consumeReduce: 0.2 } },
+  veteran:     { id: 'veteran',     name: '老兵',     icon: '👨‍🚀', cost: 360, desc: 'HP +30，战斗事件必胜', effect: { hpBonus: 30, combatWin: true } },
 };
 
 export function createPlayer(characterId = 'explorer') {
