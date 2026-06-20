@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>沙海淘金</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <header id="top-bar">
+      <h1>🏜️ 沙海淘金</h1>
+      <span id="difficulty-display">难度: 普通</span>
+      <span id="coins-display">💰 100</span>
+    </header>
+    <main id="game-area">
+      <aside id="sidebar">
+        <div id="resources-panel" class="panel">
+          <h2>资源</h2>
+          <div id="resource-water">💧 水: <span>5</span></div>
+          <div id="resource-food">🍖 食物: <span>5</span></div>
+          <div id="resource-hp">
+            ❤️ HP: <span>100/100</span>
+            <div class="hp-bar"><div class="hp-bar-fill" style="width:100%"></div></div>
+          </div>
+          <div id="resource-stamina">⚡ 体力: <span>5/5</span></div>
+        </div>
+        <div id="items-panel" class="panel">
+          <h2>道具</h2>
+          <div id="items-list"></div>
+        </div>
+        <div id="actions-panel" class="panel">
+          <h2>操作</h2>
+          <div id="action-buttons"></div>
+        </div>
+      </aside>
+      <div id="map-container">
+        <canvas id="map-canvas"></canvas>
+        <div id="event-overlay" class="overlay hidden"></div>
+      </div>
+    </main>
+    <footer id="log-bar">
+      <div id="log-content">📋 欢迎来到沙海淘金！</div>
+    </footer>
+  </div>
+
+  <!-- 弹层：开始选择 / 商店 / 事件 / 结算 -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="modal-box" class="modal-box"></div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

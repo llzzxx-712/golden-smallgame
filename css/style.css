@@ -1,0 +1,210 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #1a1625;
+  --panel-bg: #252033;
+  --panel-border: #3a3348;
+  --gold: #f0c040;
+  --water: #4a90d9;
+  --food: #c07c4a;
+  --hp: #c04a4a;
+  --stamina: #7ec04a;
+  --text: #e8e0d0;
+  --text-dim: #8a8090;
+  --danger: #e04040;
+  --success: #40c080;
+  --radius: 12px;
+  font-family: 'Segoe UI', 'PingFang SC', system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#top-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: var(--panel-bg);
+  border-bottom: 2px solid var(--panel-border);
+}
+
+#top-bar h1 { font-size: 18px; }
+
+#top-bar span { font-size: 14px; color: var(--text-dim); }
+
+#game-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+#sidebar {
+  width: 220px;
+  background: var(--panel-bg);
+  border-right: 2px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.panel {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.panel h2 {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+#resources-panel > div {
+  padding: 4px 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#map-container {
+  flex: 1;
+  position: relative;
+}
+
+#map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+}
+
+.hidden { display: none !important; }
+
+#log-bar {
+  padding: 6px 16px;
+  background: var(--panel-bg);
+  border-top: 2px solid var(--panel-border);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* 弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-box {
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  min-width: 320px;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-box h2 { font-size: 18px; margin-bottom: 12px; }
+
+.modal-box button {
+  background: var(--panel-border);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-box button:hover { background: #5a4a6a; }
+
+.modal-box button.primary { background: var(--gold); color: #1a1625; font-weight: bold; }
+.modal-box button.danger { background: var(--danger); }
+
+/* HP bar */
+.hp-bar {
+  width: 100%;
+  height: 6px;
+  background: #3a2030;
+  border-radius: 3px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.hp-bar-fill {
+  height: 100%;
+  background: var(--hp);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Action buttons */
+#action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#action-buttons button {
+  width: 100%;
+  text-align: left;
+}
+
+/* Items list */
+#items-list > div {
+  transition: background 0.2s;
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+#items-list > div:hover {
+  background: var(--panel-border);
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  #sidebar { width: 160px; font-size: 12px; }
+}
+
+/* Animations */
+.modal-overlay { animation: fadeIn 0.2s ease; }
+.modal-box { animation: slideUp 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+button { transition: all 0.2s ease; }
+button:active { transform: scale(0.95); }
+
+/* Resource colors */
+#resource-water span { color: var(--water); }
+#resource-food span { color: var(--food); }
+#resource-hp span { color: var(--hp); }
+#resource-stamina span { color: var(--stamina); }
