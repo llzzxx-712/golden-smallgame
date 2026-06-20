@@ -68,6 +68,7 @@ function renderActionButtons() {
 
   if (state.phase === 'prepare') {
     html += '<button onclick="window._openShop(\'camp\')">🛒 购买物资</button>';
+    html += '<button onclick="window._doRest()" style="background:#2a3a30">💤 休息 (+1 体力)</button>';
     html += '<button class="primary" onclick="window._startTravel()">🚶 出发！</button>';
   }
 
@@ -84,9 +85,10 @@ function renderActionButtons() {
         html += `<button ${dirClass} onclick="window._moveTo(${nid})">${dirIcon} ${dirLabel} ${node.icon} ${node.label}</button>`;
       }
     }
-    if (p.items.some(i => i.id === 'tent')) {
-      html += '<button onclick="window._useTent()">⛺ 扎营休息</button>';
-    }
+    // 休息按钮（始终可用）
+    const curNode2 = getNodeById(state.map, p.position);
+    const restBonus = getRestAmount(curNode2, p);
+    html += `<button onclick="window._doRest()" style="background:#2a3a30">💤 休息 (恢复 ${restBonus} 体力)</button>`;
     for (const item of p.items) {
       if (item.id === 'medicine' && p.hp < p.maxHp) {
         html += '<button onclick="window._useItem(\'medicine\')">💊 使用药品 (+30 HP)</button>';
@@ -233,14 +235,45 @@ function finishMove() {
   updateUI();
 }
 
-function useTent() {
+function getRestAmount(node, player) {
+  if (!node) return 1;
+  let amount = 1; // 默认
+  if (node.type === 'oasis') amount = 1.5;
+  else if (node.type === 'desert' || node.type === 'sandstorm') amount = 0.5;
+  // 帐篷额外加成
+  if (player.items.some(i => i.id === 'tent')) amount += 1.5;
+  return amount;
+}
+
+function doRest() {
   const p = state.player;
-  const idx = p.items.findIndex(i => i.id === 'tent');
-  if (idx === -1) return;
-  p.items.splice(idx, 1);
-  p.stamina = p.maxStamina;
-  addLog(state, '⛺ 扎营休息，体力完全恢复！');
-  updateUI();
+  const node = getNodeById(state.map, p.position);
+
+  // 消耗水粮
+  p.water = Math.max(-999, p.water - 1);
+  p.food = Math.max(-999, p.food - 1);
+  state.turn++;
+
+  if (checkDead(state)) {
+    reputation.stats.gamesPlayed++;
+    reputation.stats.deaths++;
+    saveReputation(reputation);
+    saveGame(state);
+    updateUI();
+    return;
+  }
+
+  const amount = getRestAmount(node, p);
+  p.stamina = Math.min(p.maxStamina, p.stamina + amount);
+  addLog(state, `💤 休息了一晚，恢复了 ${amount} 体力。消耗 💧1 🍖1`);
+
+  // 触发事件
+  const event = triggerEvent(state);
+  if (event) {
+    showEventModal(event, () => { finishMove(); });
+  } else {
+    finishMove();
+  }
 }
 
 function useItem(itemId) {
@@ -519,7 +552,7 @@ function unlockChar(charId) {
 
 // === 全局函数暴露 ===
 window._moveTo = moveTo;
-window._useTent = useTent;
+window._doRest = doRest;
 window._useItem = useItem;
 window._useCompass = useCompass;
 window._useFuel = useFuel;

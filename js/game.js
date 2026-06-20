@@ -16,14 +16,14 @@ export const DIFFICULTIES = {
 
 // 道具模板
 export const ITEM_TEMPLATES = {
-  water_bag:  { id: 'water_bag',  name: '水袋',  icon: '💧', effect: { water: 3 }, price: 15 },
-  dried_food: { id: 'dried_food', name: '干粮',  icon: '🍖', effect: { food: 3 },  price: 15 },
-  medicine:   { id: 'medicine',   name: '药品',  icon: '💊', effect: { hp: 30 },    price: 25 },
-  camel:      { id: 'camel',      name: '骆驼',  icon: '🐪', effect: { camel: true }, price: 80, permanent: true, unique: true },
-  tent:       { id: 'tent',       name: '帐篷',  icon: '⛺', effect: { tent: 1 },    price: 30, consumable: true },
-  compass:    { id: 'compass',    name: '指南针', icon: '🧭', effect: { compass: 1 }, price: 50, permanent: true, unique: true },
-  tablet:     { id: 'tablet',     name: '净水片', icon: '💠', effect: { oasisBonus: 2 }, price: 10, permanent: true, unique: true },
-  fuel:       { id: 'fuel',       name: '燃油',   icon: '⛽', effect: { fuelSteps: 3 }, price: 20, permanent: true, unique: true },
+  water_bag:  { id: 'water_bag',  name: '水袋',  icon: '💧', effect: { water: 3 }, price: 20 },
+  dried_food: { id: 'dried_food', name: '干粮',  icon: '🍖', effect: { food: 3 },  price: 20 },
+  medicine:   { id: 'medicine',   name: '药品',  icon: '💊', effect: { hp: 30 },    price: 15 },
+  camel:      { id: 'camel',      name: '骆驼',  icon: '🐪', effect: { camel: true }, price: 70, permanent: true, unique: true },
+  tent:       { id: 'tent',       name: '帐篷',  icon: '⛺', effect: { tentBonus: 1.5 }, price: 35, permanent: true, unique: true },
+  compass:    { id: 'compass',    name: '指南针', icon: '🧭', effect: { compass: 1 }, price: 45, permanent: true, unique: true },
+  tablet:     { id: 'tablet',     name: '净水片', icon: '💠', effect: { oasisBonus: 2 }, price: 20, permanent: true, unique: true },
+  fuel:       { id: 'fuel',       name: '燃油',   icon: '⛽', effect: { fuelSteps: 3 }, price: 25, permanent: true, unique: true },
 };
 
 // 角色模板
