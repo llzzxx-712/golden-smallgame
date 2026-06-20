@@ -785,12 +785,17 @@ window._showGuide = showGuide;
 function toggleQuickMove() {
   quickMoveEnabled = !quickMoveEnabled;
   const btn = document.getElementById('quick-move-btn');
+  if (!btn) return;
   btn.textContent = quickMoveEnabled ? '⚡ 快速移动：开' : '⚡ 快速移动：关';
-  btn.style.background = quickMoveEnabled ? 'var(--gold)' : '';
+  btn.style.background = quickMoveEnabled ? '#f0c040' : '';
   btn.style.color = quickMoveEnabled ? '#1a1625' : '';
+  btn.style.border = quickMoveEnabled ? '2px solid #f0c040' : '';
 }
 
 window._toggleQuickMove = toggleQuickMove;
+
+// 绑定快速移动按钮 (确保在 DOM 就绪后)
+document.getElementById('quick-move-btn').addEventListener('click', toggleQuickMove);
 
 // === 地图点击 ===
 let highlightedBtn = null;
