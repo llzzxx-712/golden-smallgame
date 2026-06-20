@@ -86,7 +86,7 @@ function renderActionButtons() {
         let posLabel = '';
         if (node.row < curNode.row) posLabel = ' △';
         else if (node.row > curNode.row) posLabel = ' ▽';
-        html += `<button ${dirClass} onclick="window._moveTo(${nid})">${dirIcon} ${dirLabel} ${node.icon} ${node.label}${posLabel}</button>`;
+        html += `<button id="mvbtn-${nid}" ${dirClass} onclick="window._moveTo(${nid})">${dirIcon} ${dirLabel} ${node.icon} ${node.label}${posLabel}</button>`;
       }
     }
     // 绿洲采摘
@@ -751,6 +751,82 @@ window._afterIntro = () => {
 };
 
 window._showGuide = showGuide;
+
+// === 地图点击 ===
+let highlightedBtn = null;
+
+canvas.addEventListener('click', (e) => {
+  if (!state || !state.map) return;
+  if (state.phase !== 'travel' && state.phase !== 'returning') return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const gx = mx * 800 / rect.width;
+  const gy = my * 500 / rect.height;
+
+  const adj = getAdjacentNodes(state.map, state.player.position);
+  let closestNode = null;
+  let closestDist = Infinity;
+
+  for (const nid of adj) {
+    const node = getNodeById(state.map, nid);
+    if (!node) continue;
+    const dx = gx - node.x;
+    const dy = gy - node.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 40 && dist < closestDist) {
+      closestDist = dist;
+      closestNode = node;
+    }
+  }
+
+  // 清除之前的高亮
+  if (highlightedBtn) {
+    highlightedBtn.classList.remove('highlighted');
+    highlightedBtn = null;
+  }
+  const tooltip = document.getElementById('node-tooltip');
+  tooltip.classList.add('hidden');
+
+  if (closestNode) {
+    // 高亮侧栏按钮
+    const btnId = `mvbtn-${closestNode.id}`;
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.classList.add('highlighted');
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      highlightedBtn = btn;
+    }
+    // 显示提示
+    const curNode = getNodeById(state.map, state.player.position);
+    const isReturn = curNode && closestNode.col < curNode.col;
+    const dirText = isReturn ? '⬅️返回' : '➡️前往';
+    const rowText = curNode && closestNode.row < curNode.row ? ' △上方' :
+                    curNode && closestNode.row > curNode.row ? ' ▽下方' : '';
+    const desc = getNodeDesc(closestNode);
+    tooltip.innerHTML = `${dirText} ${closestNode.icon} ${closestNode.label}${rowText}<br><span style="font-size:11px;color:var(--text-dim)">${desc}</span>`;
+    tooltip.classList.remove('hidden');
+    // 定位提示
+    const nodeScreenX = closestNode.x * rect.width / 800;
+    const nodeScreenY = closestNode.y * rect.height / 500;
+    tooltip.style.left = Math.min(nodeScreenX + 30, rect.width - 180) + 'px';
+    tooltip.style.top = Math.max(nodeScreenY - 40, 4) + 'px';
+  }
+});
+
+function getNodeDesc(node) {
+  const descs = {
+    camp: '起点和终点，可购买物资',
+    desert: '通过沙漠，随机触发事件',
+    oasis: '免费补水，可采摘果实',
+    ruins: '探索可能发现金币',
+    caravan: '遇到商队，价格浮动',
+    goldMine: '挖金80~120金币',
+    sandstorm: '危险！到达即扣10HP，休息可能扣体力',
+  };
+  return descs[node.type] || '';
+}
 
 // === 初始化 ===
 function init() {
