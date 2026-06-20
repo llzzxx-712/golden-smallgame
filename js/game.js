@@ -102,40 +102,50 @@ export function checkThirstHunger(state) {
   const p = state.player;
   const events = [];
 
+  // 口渴阶段: 1=水刚归零(提醒), 2=-30HP, 3=-60HP, 4=死亡
   if (p.water <= 0) {
     p._thirstStage = (p._thirstStage || 0) + 1;
-    if (p._thirstStage >= 3) {
+    if (p._thirstStage >= 4) {
       addLog(state, '💀 你渴死在沙漠中...');
       setPhase(state, 'dead');
       return [];
     }
-    const hpLoss = p._thirstStage === 1 ? 30 : 60;
-    p.hp = Math.max(0, p.hp - hpLoss);
-    events.push({
-      name: p._thirstStage === 1 ? '口渴' : '严重缺水',
-      desc: p._thirstStage === 1 ? '水已耗尽，你感到口干舌燥...' : '极度缺水，身体正在衰竭...',
-      category: 'bad',
-      hpLoss,
-    });
+    if (p._thirstStage === 1) {
+      addLog(state, '💧 水已耗尽！请尽快补水...');
+    } else {
+      const hpLoss = p._thirstStage === 2 ? 30 : 60;
+      p.hp = Math.max(0, p.hp - hpLoss);
+      events.push({
+        name: p._thirstStage === 2 ? '口渴' : '严重缺水',
+        desc: p._thirstStage === 2 ? '水已耗尽，你感到口干舌燥...' : '极度缺水，身体正在衰竭...',
+        category: 'bad',
+        hpLoss,
+      });
+    }
   } else {
     p._thirstStage = 0;
   }
 
+  // 饥饿阶段: 1=食物刚归零(提醒), 2=-30HP, 3=-60HP, 4=死亡
   if (p.food <= 0) {
     p._hungerStage = (p._hungerStage || 0) + 1;
-    if (p._hungerStage >= 3) {
+    if (p._hungerStage >= 4) {
       addLog(state, '💀 你饿死在沙漠中...');
       setPhase(state, 'dead');
       return [];
     }
-    const hpLoss = p._hungerStage === 1 ? 30 : 60;
-    p.hp = Math.max(0, p.hp - hpLoss);
-    events.push({
-      name: p._hungerStage === 1 ? '饥饿' : '严重缺食',
-      desc: p._hungerStage === 1 ? '食物已耗尽，你感到饥肠辘辘...' : '极度饥饿，身体正在消耗自身...',
-      category: 'bad',
-      hpLoss,
-    });
+    if (p._hungerStage === 1) {
+      addLog(state, '🍖 食物已耗尽！请尽快进食...');
+    } else {
+      const hpLoss = p._hungerStage === 2 ? 30 : 60;
+      p.hp = Math.max(0, p.hp - hpLoss);
+      events.push({
+        name: p._hungerStage === 2 ? '饥饿' : '严重缺食',
+        desc: p._hungerStage === 2 ? '食物已耗尽，你感到饥肠辘辘...' : '极度饥饿，身体正在消耗自身...',
+        category: 'bad',
+        hpLoss,
+      });
+    }
   } else {
     p._hungerStage = 0;
   }

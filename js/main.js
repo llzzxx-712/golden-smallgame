@@ -864,9 +864,6 @@ function toggleQuickMove() {
 
 window._toggleQuickMove = toggleQuickMove;
 
-// 绑定快速移动按钮 (确保在 DOM 就绪后)
-document.getElementById('quick-move-btn').addEventListener('click', toggleQuickMove);
-
 // === 地图点击 ===
 let highlightedBtn = null;
 let lastClickedNodeId = null;
@@ -961,6 +958,12 @@ function getNodeDesc(node) {
 
 // === 初始化 ===
 function init() {
+  // 绑定快速移动按钮
+  const qmb = document.getElementById('quick-move-btn');
+  if (qmb) {
+    qmb.onclick = toggleQuickMove;
+  }
+
   reputation = loadReputation();
   const introSeen = localStorage.getItem('sahaijin_intro_seen');
   if (!introSeen) {
