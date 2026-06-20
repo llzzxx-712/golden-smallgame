@@ -299,20 +299,16 @@ export function renderMap(canvas, map, state, revealedNodes = null) {
     ctx.lineWidth = isPlayer ? 3 : 2;
     ctx.stroke();
 
-    // 绘制节点符号 — 桌面用 emoji，手机用图形
-    if (window.innerWidth > 700) {
-      ctx.font = '22px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#fff';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur = 2;
-      ctx.fillText(n.icon, n.x, n.y);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-    } else {
-      drawNodeSymbol(ctx, n.x, n.y, n.type, radius * 0.45);
-    }
+    // 绘制节点符号
+    ctx.font = '22px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 2;
+    ctx.fillText(n.icon, n.x, n.y);
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
   }
 }
 
