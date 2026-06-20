@@ -11,6 +11,7 @@ let chosenCharacter = 'explorer';
 let chosenDifficulty = 'normal';
 let pendingEvent = null;
 let afterEventCallback = null;
+let quickMoveEnabled = false;
 
 const canvas = document.getElementById('map-canvas');
 
@@ -780,6 +781,17 @@ window._afterIntro = () => {
 
 window._showGuide = showGuide;
 
+// === 快速移动 ===
+function toggleQuickMove() {
+  quickMoveEnabled = !quickMoveEnabled;
+  const btn = document.getElementById('quick-move-btn');
+  btn.textContent = quickMoveEnabled ? '⚡ 快速移动：开' : '⚡ 快速移动：关';
+  btn.style.background = quickMoveEnabled ? 'var(--gold)' : '';
+  btn.style.color = quickMoveEnabled ? '#1a1625' : '';
+}
+
+window._toggleQuickMove = toggleQuickMove;
+
 // === 地图点击 ===
 let highlightedBtn = null;
 let lastClickedNodeId = null;
@@ -815,12 +827,16 @@ canvas.addEventListener('click', (e) => {
 
   const isAdjacent = getAdjacentNodes(state.map, state.player.position).includes(closestNode.id);
 
-  // 双击同一个相邻节点 → 确认前往
+  // 双击同一个相邻节点
   if (closestNode.id === lastClickedNodeId && isAdjacent) {
-    const curNode = getNodeById(state.map, state.player.position);
-    const isReturn = curNode && closestNode.col < curNode.col;
-    const dirText = isReturn ? '⬅️返回' : '➡️前往';
-    showConfirmModal(closestNode, dirText);
+    if (quickMoveEnabled) {
+      moveTo(closestNode.id);
+    } else {
+      const curNode = getNodeById(state.map, state.player.position);
+      const isReturn = curNode && closestNode.col < curNode.col;
+      const dirText = isReturn ? '⬅️返回' : '➡️前往';
+      showConfirmModal(closestNode, dirText);
+    }
     return;
   }
 
@@ -843,7 +859,9 @@ canvas.addEventListener('click', (e) => {
   const isReturn = curNode && closestNode.col < curNode.col;
   const dirText = isAdjacent ? (isReturn ? '⬅️返回' : '➡️前往') : '👁️';
   const rowText = curNode && closestNode.row < curNode.row ? ' △上方' : curNode && closestNode.row > curNode.row ? ' ▽下方' : '';
-  const clickHint = isAdjacent ? '<br><span style="font-size:10px;color:var(--gold)">再次点击确认前往</span>' : '';
+  const clickHint = isAdjacent ? (quickMoveEnabled
+    ? '<br><span style="font-size:10px;color:var(--success)">再次点击直接前往</span>'
+    : '<br><span style="font-size:10px;color:var(--gold)">再次点击确认前往</span>') : '';
   const desc = getNodeDesc(closestNode);
   tooltip.innerHTML = `${dirText} ${closestNode.icon} ${closestNode.label}${rowText}${clickHint}<br><span style="font-size:11px;color:var(--text-dim)">${desc}</span>`;
   tooltip.classList.remove('hidden');
