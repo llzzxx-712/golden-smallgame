@@ -20,6 +20,7 @@ export function loadReputation() {
     const raw = localStorage.getItem(REPUTATION_KEY);
     if (!raw) return createReputation();
     const data = JSON.parse(raw);
+    if (!data || typeof data !== 'object') return createReputation();
     return { ...createReputation(), ...data };
   } catch {
     return createReputation();
@@ -78,11 +79,11 @@ export function settleReputation(state) {
   let earned = 0;
   if (state.phase === 'win') {
     earned += 50; // 活着回来
-    earned += Math.floor(p.coins / 10);  // 带回金币
-    earned += p.water * 2;
-    earned += p.food * 2;
-    earned += p.items.length * 5;
-    earned += p.visitedNodes.length * 3;
+    earned += Math.floor((p.coins || 0) / 10);
+    earned += (p.water || 0) * 2;
+    earned += (p.food || 0) * 2;
+    earned += (p.items?.length || 0) * 5;
+    earned += (p.visitedNodes?.length || 0) * 3;
   }
   earned = Math.floor(earned * (difficultyMultipliers[state.difficulty] || 1));
 
