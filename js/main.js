@@ -770,22 +770,6 @@ canvas.addEventListener('click', (e) => {
   const gx = mx * 800 / rect.width;
   const gy = my * 500 / rect.height;
 
-  const adj = getAdjacentNodes(state.map, state.player.position);
-  let closestNode = null;
-  let closestDist = Infinity;
-
-  for (const nid of adj) {
-    const node = getNodeById(state.map, nid);
-    if (!node) continue;
-    const dx = gx - node.x;
-    const dy = gy - node.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 40 && dist < closestDist) {
-      closestDist = dist;
-      closestNode = node;
-    }
-  }
-
   // 清除之前的高亮
   if (highlightedBtn) {
     highlightedBtn.classList.remove('highlighted');
@@ -794,8 +778,29 @@ canvas.addEventListener('click', (e) => {
   const tooltip = document.getElementById('node-tooltip');
   tooltip.classList.add('hidden');
 
-  if (closestNode) {
-    // 高亮侧栏按钮
+  // 搜索所有已揭示节点 (不止相邻)
+  const revealed = state.revealedNodes || new Set();
+  let closestNode = null;
+  let closestDist = 25; // 命中阈值
+
+  for (const nid of revealed) {
+    const node = getNodeById(state.map, nid);
+    if (!node) continue;
+    const dx = gx - node.x;
+    const dy = gy - node.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestNode = node;
+    }
+  }
+
+  if (!closestNode) return;
+
+  // 仅相邻节点高亮按钮
+  const adj = getAdjacentNodes(state.map, state.player.position);
+  const isAdjacent = adj.includes(closestNode.id);
+  if (isAdjacent) {
     const btnId = `mvbtn-${closestNode.id}`;
     const btn = document.getElementById(btnId);
     if (btn) {
@@ -803,21 +808,21 @@ canvas.addEventListener('click', (e) => {
       btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       highlightedBtn = btn;
     }
-    // 显示提示
-    const curNode = getNodeById(state.map, state.player.position);
-    const isReturn = curNode && closestNode.col < curNode.col;
-    const dirText = isReturn ? '⬅️返回' : '➡️前往';
-    const rowText = curNode && closestNode.row < curNode.row ? ' △上方' :
-                    curNode && closestNode.row > curNode.row ? ' ▽下方' : '';
-    const desc = getNodeDesc(closestNode);
-    tooltip.innerHTML = `${dirText} ${closestNode.icon} ${closestNode.label}${rowText}<br><span style="font-size:11px;color:var(--text-dim)">${desc}</span>`;
-    tooltip.classList.remove('hidden');
-    // 定位提示
-    const nodeScreenX = closestNode.x * rect.width / 800;
-    const nodeScreenY = closestNode.y * rect.height / 500;
-    tooltip.style.left = Math.min(nodeScreenX + 30, rect.width - 180) + 'px';
-    tooltip.style.top = Math.max(nodeScreenY - 40, 4) + 'px';
   }
+
+  // 显示提示
+  const curNode = getNodeById(state.map, state.player.position);
+  const isReturn = curNode && closestNode.col < curNode.col;
+  const dirText = isAdjacent ? (isReturn ? '⬅️返回' : '➡️前往') : '👁️';
+  const rowText = curNode && closestNode.row < curNode.row ? ' △上方' :
+                  curNode && closestNode.row > curNode.row ? ' ▽下方' : '';
+  const desc = getNodeDesc(closestNode);
+  tooltip.innerHTML = `${dirText} ${closestNode.icon} ${closestNode.label}${rowText}<br><span style="font-size:11px;color:var(--text-dim)">${desc}</span>`;
+  tooltip.classList.remove('hidden');
+  const nodeScreenX = closestNode.x * rect.width / 800;
+  const nodeScreenY = closestNode.y * rect.height / 500;
+  tooltip.style.left = Math.min(nodeScreenX + 30, rect.width - 180) + 'px';
+  tooltip.style.top = Math.max(nodeScreenY - 40, 4) + 'px';
 });
 
 function getNodeDesc(node) {

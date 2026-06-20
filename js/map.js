@@ -1,12 +1,12 @@
 // 节点类型 (icon 用于 DOM / canvasLabel 用于 Canvas 渲染)
 export const NODE_TYPES = {
-  camp:      { type: 'camp',      icon: '🏕', canvasLabel: '营', label: '营地',  eventChance: 0 },
-  desert:    { type: 'desert',    icon: '🌵', canvasLabel: '沙', label: '沙漠',  eventChance: 1 },
-  oasis:     { type: 'oasis',     icon: '💧', canvasLabel: '泉', label: '绿洲',  eventChance: 0.5, goodBias: 0.2 },
-  ruins:     { type: 'ruins',     icon: '🏚', canvasLabel: '墟', label: '废墟',  eventChance: 0.8, goodBias: 0.15 },
-  caravan:   { type: 'caravan',   icon: '🐪', canvasLabel: '商', label: '商队',  eventChance: 0 },
-  goldMine:  { type: 'goldMine',  icon: '⛏', canvasLabel: '金', label: '金矿',  eventChance: 0 },
-  sandstorm: { type: 'sandstorm', icon: '🌪', canvasLabel: '暴', label: '沙暴',  eventChance: 0.9, goodBias: -0.4 },
+  camp:      { type: 'camp',      icon: '🏕', label: '营地',  eventChance: 0 },
+  desert:    { type: 'desert',    icon: '🌵', label: '沙漠',  eventChance: 1 },
+  oasis:     { type: 'oasis',     icon: '💧', label: '绿洲',  eventChance: 0.5, goodBias: 0.2 },
+  ruins:     { type: 'ruins',     icon: '🏚', label: '废墟',  eventChance: 0.8, goodBias: 0.15 },
+  caravan:   { type: 'caravan',   icon: '🐪', label: '商队',  eventChance: 0 },
+  goldMine:  { type: 'goldMine',  icon: '⛏', label: '金矿',  eventChance: 0 },
+  sandstorm: { type: 'sandstorm', icon: '🌪', label: '沙暴',  eventChance: 0.9, goodBias: -0.4 },
 };
 
 function shuffle(arr) {
@@ -299,14 +299,105 @@ export function renderMap(canvas, map, state, revealedNodes = null) {
     ctx.lineWidth = isPlayer ? 3 : 2;
     ctx.stroke();
 
-    ctx.font = 'bold 16px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur = 3;
-    ctx.fillStyle = '#fff';
-    ctx.fillText(n.canvasLabel || n.icon, n.x, n.y);
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
+    // 绘制节点符号 (Canvas 形状, 跨平台可靠)
+    drawNodeSymbol(ctx, n.x, n.y, n.type, radius * 0.45);
   }
+}
+
+function drawNodeSymbol(ctx, x, y, type, size) {
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx.lineWidth = 1.5;
+  const s = size;
+
+  ctx.save();
+  ctx.translate(x, y);
+
+  switch (type) {
+    case 'camp': // △ 帐篷
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.9);
+      ctx.lineTo(-s * 0.9, s * 0.7);
+      ctx.lineTo(s * 0.9, s * 0.7);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      // 门
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillRect(-s * 0.2, s * 0.1, s * 0.4, s * 0.6);
+      break;
+
+    case 'desert': // ⋮ 沙粒
+      ctx.beginPath();
+      ctx.arc(-s * 0.4, 0, s * 0.18, 0, Math.PI * 2);
+      ctx.arc(s * 0.4, -s * 0.3, s * 0.18, 0, Math.PI * 2);
+      ctx.arc(0, s * 0.4, s * 0.18, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(s * 0.1, s * 0.0, s * 0.13, 0, Math.PI * 2);
+      ctx.arc(-s * 0.2, s * 0.5, s * 0.13, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+
+    case 'oasis': // 💧 水滴
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.9);
+      ctx.quadraticCurveTo(-s * 0.7, s * 0.2, 0, s * 0.7);
+      ctx.quadraticCurveTo(s * 0.7, s * 0.2, 0, -s * 0.9);
+      ctx.fill(); ctx.stroke();
+      break;
+
+    case 'ruins': // ⊥ 残柱
+      ctx.beginPath();
+      ctx.arc(0, -s * 0.3, s * 0.7, Math.PI * 0.15, Math.PI * 0.85);
+      ctx.lineTo(0, s * 0.9);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillRect(-s * 0.7, -s * 0.4, s * 1.4, s * 0.22);
+      ctx.strokeRect(-s * 0.7, -s * 0.4, s * 1.4, s * 0.22);
+      break;
+
+    case 'caravan': // ◠ 驼峰
+      ctx.beginPath();
+      ctx.arc(-s * 0.35, s * 0.1, s * 0.55, Math.PI, 0);
+      ctx.arc(s * 0.35, s * 0.1, s * 0.55, Math.PI, 0);
+      ctx.fill(); ctx.stroke();
+      // 身体线
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.9, s * 0.4);
+      ctx.lineTo(s * 0.9, s * 0.4);
+      ctx.stroke();
+      break;
+
+    case 'goldMine': // ✦ 宝石
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const a = (Math.PI / 2) * i - Math.PI / 4;
+        const r1 = s * 0.9;
+        const r2 = s * 0.25;
+        ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
+        ctx.lineTo(Math.cos(a + Math.PI / 4) * r2, Math.sin(a + Math.PI / 4) * r2);
+      }
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      break;
+
+    case 'sandstorm': // ✕ 风暴
+      const cx = s * 0.55, cy = s * 0.55;
+      ctx.beginPath();
+      ctx.moveTo(-cx, -cy); ctx.lineTo(cx, cy);
+      ctx.moveTo(cx, -cy); ctx.lineTo(-cx, cy);
+      ctx.stroke();
+      // 外圈
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.65, 0, Math.PI * 2 * 0.75);
+      ctx.stroke();
+      break;
+
+    default:
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+  }
+
+  ctx.restore();
 }
