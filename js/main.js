@@ -1,4 +1,4 @@
-import { createGameState, DIFFICULTIES, CHARACTERS, ITEM_TEMPLATES, addLog, setPhase, consumeStepResources, checkDead, checkWin } from './game.js';
+import { createGameState, DIFFICULTIES, CHARACTERS, ITEM_TEMPLATES, addLog, setPhase, consumeStepResources, checkDead } from './game.js';
 import { generateMap, renderMap, getAdjacentNodes, getNodeById } from './map.js';
 import { triggerEvent, applyEvent } from './events.js';
 import { getShopItems, buyItem } from './shop.js';
@@ -147,6 +147,8 @@ function moveTo(nodeId) {
 
   // 检查死亡
   if (checkDead(state)) {
+    reputation.stats.gamesPlayed++;
+    reputation.stats.deaths++;
     saveReputation(reputation);
     saveGame(state);
     updateUI();
@@ -156,10 +158,12 @@ function moveTo(nodeId) {
   // 节点逻辑
   if (targetNode.type === 'camp') {
     if (p.atGoldMine) {
+      setPhase(state, 'win');
+      state.reputationEarned = 0;
+      addLog(state, '🎉 你成功带着金子回到了营地！');
       const result = settleReputation(state);
       state.reputationEarned = result.earned;
-      setPhase(state, 'win');
-      addLog(state, '🎉 你成功带着金子回到了营地！');
+      reputation = result.rep;
     } else {
       addLog(state, '你回到了营地。');
     }
