@@ -44,6 +44,7 @@ export function saveGame(state) {
       map: state.map,
       log: state.log.slice(-20),
       turn: state.turn,
+      revealedNodes: state.revealedNodes ? [...state.revealedNodes] : [],
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
   } catch {

@@ -41,9 +41,9 @@ export function generateMap(difficulty = 'normal', canvasWidth = 800, canvasHeig
   const nodes = [];
   const edges = [];
 
-  const margin = 60;
-  const cols = 5;
-  const rows = 3;
+  const margin = 50;
+  const cols = 8;
+  const rows = 5;
   const cellW = (canvasWidth - margin * 2) / (cols - 1);
   const cellH = (canvasHeight - margin * 2) / (rows - 1);
 
@@ -159,7 +159,30 @@ export function getNodeById(map, nodeId) {
   return map.nodes.find(n => n.id === nodeId);
 }
 
-export function renderMap(canvas, map, state) {
+export function getNodesInRange(map, nodeId, range) {
+  if (range <= 0) return [nodeId];
+  const adjMap = {};
+  for (const e of map.edges) {
+    if (!adjMap[e.from]) adjMap[e.from] = [];
+    if (!adjMap[e.to]) adjMap[e.to] = [];
+    adjMap[e.from].push(e.to);
+    adjMap[e.to].push(e.from);
+  }
+  const result = new Set([nodeId]);
+  let frontier = new Set([nodeId]);
+  for (let d = 0; d < range; d++) {
+    const next = new Set();
+    for (const nid of frontier) {
+      for (const nb of (adjMap[nid] || [])) {
+        if (!result.has(nb)) { result.add(nb); next.add(nb); }
+      }
+    }
+    frontier = next;
+  }
+  return [...result];
+}
+
+export function renderMap(canvas, map, state, revealedNodes = null) {
   if (!canvas || !map || !map.nodes || !map.edges) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
@@ -176,53 +199,75 @@ export function renderMap(canvas, map, state) {
   ctx.fillStyle = '#1a1625';
   ctx.fillRect(0, 0, 800, 500);
 
-  // 画边
+  // 迷雾过滤
+  const isRevealed = (nid) => !revealedNodes || revealedNodes.has(nid);
+
+  // 画边 (仅两端都可见)
   for (const e of map.edges) {
+    if (!isRevealed(e.from) && !isRevealed(e.to)) continue;
     const from = map.nodes.find(n => n.id === e.from);
     const to = map.nodes.find(n => n.id === e.to);
     if (!from || !to) continue;
 
+    const bothRevealed = isRevealed(e.from) && isRevealed(e.to);
+
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
-    ctx.strokeStyle = '#3a3348';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = bothRevealed ? '#3a3348' : '#252033';
+    ctx.lineWidth = bothRevealed ? 3 : 2;
     ctx.setLineDash([8, 4]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 箭头
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    const mx = (from.x + to.x) / 2;
-    const my = (from.y + to.y) / 2;
-    ctx.save();
-    ctx.translate(mx, my);
-    ctx.rotate(angle);
-    ctx.fillStyle = '#5a4a6a';
-    ctx.beginPath();
-    ctx.moveTo(6, 0);
-    ctx.lineTo(-4, -4);
-    ctx.lineTo(-4, 4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+    if (bothRevealed) {
+      const angle = Math.atan2(to.y - from.y, to.x - from.x);
+      const mx = (from.x + to.x) / 2;
+      const my = (from.y + to.y) / 2;
+      ctx.save();
+      ctx.translate(mx, my);
+      ctx.rotate(angle);
+      ctx.fillStyle = '#5a4a6a';
+      ctx.beginPath();
+      ctx.moveTo(6, 0);
+      ctx.lineTo(-4, -4);
+      ctx.lineTo(-4, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   // 画节点
   const playerPos = state ? state.player.position : null;
   for (const n of map.nodes) {
-    const isPlayer = n.id === playerPos;
-    const radius = isPlayer ? 30 : 24;
+    if (!isRevealed(n.id)) {
+      // 迷雾节点
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 14, 0, Math.PI * 2);
+      ctx.fillStyle = '#1a1625';
+      ctx.fill();
+      ctx.strokeStyle = '#252033';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#3a3348';
+      ctx.fillText('?', n.x, n.y);
+      continue;
+    }
 
-    // 外圈光晕 (玩家位置)
+    const isPlayer = n.id === playerPos;
+    const radius = isPlayer ? 28 : 22;
+
     if (isPlayer) {
       ctx.beginPath();
-      ctx.arc(n.x, n.y, radius + 6, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, radius + 5, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(240, 192, 64, 0.3)';
       ctx.fill();
     }
 
-    // 节点圆
     const gradient = ctx.createRadialGradient(n.x - 3, n.y - 3, 2, n.x, n.y, radius);
     if (n.type === 'sandstorm') {
       gradient.addColorStop(0, '#6a4a3a');
@@ -254,8 +299,7 @@ export function renderMap(canvas, map, state) {
     ctx.lineWidth = isPlayer ? 3 : 2;
     ctx.stroke();
 
-    // emoji 图标
-    ctx.font = '20px sans-serif';
+    ctx.font = '18px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(n.icon, n.x, n.y);

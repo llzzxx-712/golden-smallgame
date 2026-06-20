@@ -50,32 +50,35 @@ body {
 }
 
 #sidebar {
-  width: 220px;
+  width: 240px;
   background: var(--panel-bg);
   border-right: 2px solid var(--panel-border);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px;
+  gap: 10px;
+  padding: 10px;
   overflow-y: auto;
 }
 
 .panel {
   background: var(--bg);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 14px;
 }
 
 .panel h2 {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-dim);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 6px;
 }
 
 #resources-panel > div {
-  padding: 4px 0;
-  font-size: 14px;
+  padding: 5px 0;
+  font-size: 16px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -172,11 +175,27 @@ body {
 #action-buttons {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 #action-buttons button {
   width: 100%;
   text-align: left;
+  background: var(--panel-border);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+#action-buttons button:hover {
+  background: #5a4a6a;
+}
+#action-buttons button.primary {
+  background: var(--gold);
+  color: #1a1625;
+  font-weight: bold;
 }
 
 /* Items list */

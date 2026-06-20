@@ -1,13 +1,15 @@
 import { createGameState, DIFFICULTIES, CHARACTERS, ITEM_TEMPLATES, addLog, setPhase, consumeStepResources, checkDead } from './game.js';
-import { generateMap, renderMap, getAdjacentNodes, getNodeById } from './map.js';
+import { generateMap, renderMap, getAdjacentNodes, getNodeById, getNodesInRange } from './map.js';
 import { triggerEvent, applyEvent } from './events.js';
 import { getShopItems, buyItem } from './shop.js';
-import { saveGame, loadGame, clearSave, loadReputation, saveReputation, settleReputation } from './storage.js';
+import { saveGame, loadGame, clearSave, loadReputation, saveReputation, settleReputation, unlockCharacter } from './storage.js';
 
 let state = null;
 let reputation = null;
 let chosenCharacter = 'explorer';
 let chosenDifficulty = 'normal';
+let pendingEvent = null;
+let afterEventCallback = null;
 
 const canvas = document.getElementById('map-canvas');
 
@@ -57,7 +59,7 @@ function updateUI() {
   logContent.textContent = '📋 ' + (state.log.length > 0 ? state.log[state.log.length - 1] : '欢迎来到沙海淘金！');
 
   // Canvas 重绘
-  if (state.map) renderMap(canvas, state.map, state);
+  if (state.map) renderMap(canvas, state.map, state, state.revealedNodes || null);
 }
 
 function renderActionButtons() {
@@ -71,10 +73,15 @@ function renderActionButtons() {
 
   if (state.phase === 'travel' || state.phase === 'returning') {
     const adj = getAdjacentNodes(state.map, p.position);
+    const curNode = getNodeById(state.map, p.position);
     for (const nid of adj) {
       const node = getNodeById(state.map, nid);
-      if (node) {
-        html += `<button onclick="window._moveTo(${nid})">➡️ 前往 ${node.icon} ${node.label}</button>`;
+      if (node && curNode) {
+        const isReturn = node.col < curNode.col;
+        const dirIcon = isReturn ? '⬅️' : '➡️';
+        const dirLabel = isReturn ? '返回' : '前往';
+        const dirClass = isReturn ? 'style="background:#3a2a30"' : '';
+        html += `<button ${dirClass} onclick="window._moveTo(${nid})">${dirIcon} ${dirLabel} ${node.icon} ${node.label}</button>`;
       }
     }
     if (p.items.some(i => i.id === 'tent')) {
@@ -122,11 +129,9 @@ function moveTo(nodeId) {
   const targetNode = getNodeById(state.map, nodeId);
   if (!targetNode) return;
 
-  // 检查体力
   const hasCamel = p.items.some(i => i.id === 'camel');
   const staminaCost = hasCamel ? 0.5 : 1;
 
-  // 燃油效果：跳过体力消耗
   if (p._fuelSteps > 0) {
     p._fuelSteps--;
     addLog(state, `⛽ 燃油驱动，本步不耗体力 (剩余 ${p._fuelSteps} 步)`);
@@ -140,12 +145,16 @@ function moveTo(nodeId) {
     addLog(state, `消耗 💧${waterCost} 🍖${foodCost}`);
   }
 
-  // 移动
   p.visitedNodes.push(nodeId);
   p.position = nodeId;
   state.turn++;
 
-  // 检查死亡
+  // 迷雾：揭示相邻节点
+  if (state.revealedNodes) {
+    const newRevealed = getNodesInRange(state.map, nodeId, 1);
+    for (const nid of newRevealed) state.revealedNodes.add(nid);
+  }
+
   if (checkDead(state)) {
     reputation.stats.gamesPlayed++;
     reputation.stats.deaths++;
@@ -155,7 +164,12 @@ function moveTo(nodeId) {
     return;
   }
 
-  // 节点逻辑
+  handleNodeArrival(targetNode);
+}
+
+function handleNodeArrival(targetNode) {
+  const p = state.player;
+
   if (targetNode.type === 'camp') {
     if (p.atGoldMine) {
       setPhase(state, 'win');
@@ -167,32 +181,50 @@ function moveTo(nodeId) {
     } else {
       addLog(state, '你回到了营地。');
     }
-  } else if (targetNode.type === 'goldMine') {
+    finishMove();
+    return;
+  }
+
+  if (targetNode.type === 'goldMine') {
     setPhase(state, 'mining');
     p.atGoldMine = true;
     addLog(state, '⛏️ 你到达了金矿！准备挖金。');
-  } else if (targetNode.type === 'oasis') {
+    finishMove();
+    return;
+  }
+
+  if (targetNode.type === 'oasis') {
     const bonus = p.items.some(i => i.id === 'tablet') ? 4 : 2;
     p.water += bonus;
     addLog(state, `💧 在绿洲补充了 ${bonus} 水！`);
-    const event = triggerEvent(state);
-    if (event) applyEvent(state, event);
-  } else if (targetNode.type === 'caravan') {
+  }
+
+  if (targetNode.type === 'caravan') {
     addLog(state, '🐪 你遇到了商队，可以交易物资。');
+    afterShopClose = () => {
+      finishMove();
+    };
     openShop('caravan');
-  } else if (targetNode.type === 'ruins') {
+    return;
+  }
+
+  if (targetNode.type === 'ruins') {
     addLog(state, '🏚️ 你探索了废墟...');
     if (Math.random() > 0.5) {
       p.coins += 15;
       addLog(state, '找到了 15 💰！');
     }
-    const event = triggerEvent(state);
-    if (event) applyEvent(state, event);
-  } else {
-    const event = triggerEvent(state);
-    if (event) applyEvent(state, event);
   }
 
+  const event = triggerEvent(state);
+  if (event) {
+    showEventModal(event, () => { finishMove(); });
+  } else {
+    finishMove();
+  }
+}
+
+function finishMove() {
   checkDead(state);
   if (state.phase === 'dead') {
     saveReputation(reputation);
@@ -229,12 +261,18 @@ function useCompass() {
   const idx = p.items.findIndex(i => i.id === 'compass');
   if (idx === -1) return;
   p.items.splice(idx, 1);
-  const adj = getAdjacentNodes(state.map, p.position);
-  const info = adj.map(nid => {
-    const n = getNodeById(state.map, nid);
-    return n ? `${n.icon}${n.label}` : '?';
-  }).join(' | ');
-  addLog(state, `🧭 指南针显示相邻节点: ${info}`);
+  // 揭示距离2的节点
+  if (state.revealedNodes) {
+    const range2 = getNodesInRange(state.map, p.position, 2);
+    let revealed = 0;
+    for (const nid of range2) {
+      if (!state.revealedNodes.has(nid)) {
+        state.revealedNodes.add(nid);
+        revealed++;
+      }
+    }
+    addLog(state, `🧭 指南针揭示了周围 ${revealed} 个新地点！`);
+  }
   updateUI();
 }
 
@@ -262,6 +300,51 @@ function mineGold() {
   updateUI();
 }
 
+// === 事件弹窗 ===
+function showEventModal(event, callback) {
+  const catColors = { good: 'var(--gold)', bad: 'var(--danger)', neutral: 'var(--text-dim)' };
+  const catLabels = { good: '🎉 好运', bad: '😨 噩运', neutral: '📋 事件' };
+  const color = catColors[event.category] || 'var(--text-dim)';
+  const label = catLabels[event.category] || '事件';
+
+  const effectTexts = [];
+  const eff = event.effect;
+  if (eff.water) effectTexts.push(`💧 水 ${eff.water > 0 ? '+' : ''}${eff.water}`);
+  if (eff.food) effectTexts.push(`🍖 食物 ${eff.food > 0 ? '+' : ''}${eff.food}`);
+  if (eff.hp) effectTexts.push(`❤️ HP ${eff.hp > 0 ? '+' : ''}${eff.hp}`);
+  if (eff.coins) effectTexts.push(`💰 金币 ${eff.coins > 0 ? '+' : ''}${eff.coins}`);
+  if (eff.stamina) effectTexts.push(`⚡ 体力 ${eff.stamina > 0 ? '+' : ''}${eff.stamina}`);
+  if (eff.tent) effectTexts.push('⛺ 免费扎营');
+  if (eff.retreat) effectTexts.push('↩️ 退回上个节点');
+  if (eff.freeStep) effectTexts.push('⚡ 本步不耗体力');
+  if (eff.shortcut) effectTexts.push('🗺️ 发现捷径');
+  if (eff.reveal) effectTexts.push('👁️ 探查周围节点');
+
+  showModal(`
+    <div style="text-align:center;margin-bottom:16px">
+      <span style="font-size:40px;display:block;margin-bottom:8px">${event.name.includes('沙暴') ? '🌪️' : event.name.includes('发现') ? '💧' : event.name.includes('强盗') ? '⚔️' : event.category === 'good' ? '✨' : event.category === 'bad' ? '💥' : '📦'}</span>
+      <h2 style="color:${color};margin:0">${label}</h2>
+      <h3 style="color:${color};margin:8px 0">${event.name}</h3>
+      <p style="color:var(--text);font-size:15px;line-height:1.6">${event.desc}</p>
+      ${effectTexts.length > 0 ? `<div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;font-size:14px">${effectTexts.join('&nbsp;&nbsp;|&nbsp;&nbsp;')}</div>` : ''}
+    </div>
+    <button class="primary" onclick="window._dismissEvent()" style="width:100%;padding:12px;font-size:16px">确定</button>
+  `);
+  pendingEvent = event;
+  afterEventCallback = callback;
+}
+
+window._dismissEvent = () => {
+  const event = pendingEvent;
+  const cb = afterEventCallback;
+  pendingEvent = null;
+  afterEventCallback = null;
+  if (event && cb) {
+    applyEvent(state, event);
+    cb();
+  }
+};
+
 // === 弹窗 ===
 function showModal(html) {
   modalBox.innerHTML = html;
@@ -279,13 +362,23 @@ function showStartScreen() {
 
   const charOptions = Object.values(CHARACTERS).map(c => {
     const unlocked = rep.unlockedCharacters.includes(c.id);
-    const selectedClass = chosenCharacter === c.id ? 'border:2px solid var(--gold)' : 'border:2px solid transparent';
+    const affordable = !unlocked && rep.totalReputation >= c.cost;
+    const selectedBorder = (unlocked && chosenCharacter === c.id) ? 'border:2px solid var(--gold)' : 'border:2px solid transparent';
     return `
-      <div style="padding:8px;margin:4px 0;background:var(--bg);border-radius:8px;cursor:pointer;${selectedClass}"
-           onclick="window._selectChar('${c.id}')">
-        <strong>${c.icon} ${c.name}</strong>
-        <span style="float:right;color:var(--text-dim);font-size:12px">${unlocked ? '✅ 已解锁' : `🔒 ${c.cost}声望`}</span>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:4px">${c.desc}</div>
+      <div style="padding:10px;margin:6px 0;background:var(--bg);border-radius:8px;display:flex;align-items:center;gap:8px;cursor:pointer;${selectedBorder}"
+           ${unlocked ? `onclick="window._selectChar('${c.id}')"` : ''}>
+        <span style="font-size:24px">${c.icon}</span>
+        <div style="flex:1">
+          <strong>${c.name}</strong>
+          <div style="font-size:12px;color:var(--text-dim)">${c.desc}</div>
+        </div>
+        ${unlocked ? '<span style="color:var(--success);font-size:12px">✅</span>' : `
+          <button onclick="event.stopPropagation();window._unlockChar('${c.id}')" 
+            style="padding:6px 12px;font-size:13px;${affordable ? '' : 'opacity:0.4;cursor:not-allowed'}"
+            ${!affordable ? 'disabled' : ''}>
+            🔒 ${c.cost}⭐
+          </button>
+        `}
       </div>
     `;
   }).join('');
@@ -325,6 +418,7 @@ function startGame() {
   state.map = generateMap(chosenDifficulty, 800, 500);
   state.player.position = state.map.startNodeId;
   state.player.visitedNodes = [state.map.startNodeId];
+  state.revealedNodes = new Set(getNodesInRange(state.map, state.map.startNodeId, 1));
   setPhase(state, 'prepare');
   addLog(state, `🟢 你选择了「${CHARACTERS[chosenCharacter].name}」，准备出发！`);
   saveGame(state);
@@ -333,8 +427,11 @@ function startGame() {
 
 let shopItemsCache = null;
 
+let afterShopClose = null;
+
 function openShop(location) {
   shopItemsCache = getShopItems(location);
+  const closeHandler = afterShopClose ? 'window._closeShopAndContinue()' : 'window._hideModal()';
   const html = `
     <h2>${location === 'camp' ? '🏕️ 营地商店' : '🐪 商队交易'}</h2>
     <div style="margin-bottom:8px;color:var(--gold)">💰 持有金币: ${state.player.coins}</div>
@@ -354,10 +451,17 @@ function openShop(location) {
         </div>
       `;
     }).join('')}
-    <button onclick="window._hideModal()" style="margin-top:8px;width:100%">关闭</button>
+    <button onclick="${closeHandler}" style="margin-top:8px;width:100%">关闭</button>
   `;
   showModal(html);
 }
+
+window._closeShopAndContinue = () => {
+  hideModal();
+  const cb = afterShopClose;
+  afterShopClose = null;
+  if (cb) cb();
+};
 
 function describeEffect(eff) {
   const parts = [];
@@ -395,9 +499,23 @@ function resumeGame() {
   if (!saved) return;
   state = createGameState(saved.difficulty, saved.player.character);
   Object.assign(state, saved);
+  // 恢复 revealedNodes 为 Set
+  if (saved.revealedNodes && Array.isArray(saved.revealedNodes)) {
+    state.revealedNodes = new Set(saved.revealedNodes);
+  } else {
+    state.revealedNodes = new Set();
+  }
   reputation = loadReputation();
   hideModal();
   updateUI();
+}
+
+function unlockChar(charId) {
+  const result = unlockCharacter(reputation, charId);
+  if (result.success) {
+    addLog(state, result.message);
+  }
+  showStartScreen();
 }
 
 // === 全局函数暴露 ===
@@ -421,6 +539,7 @@ window._buy = (itemId, location, price) => {
   openShop(location);
   updateUI();
 };
+window._unlockChar = (id) => unlockChar(id);
 window._startTravel = () => {
   setPhase(state, 'travel');
   addLog(state, '🚶 你踏上了寻金之旅...');

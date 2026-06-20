@@ -1,16 +1,16 @@
 // 难度配置
 export const DIFFICULTIES = {
   easy: {
-    label: '简单', oasisCount: 3, goodEventBias: 0.1, startCoins: 150,
-    sandstormCount: 1, reputationMultiplier: 1.0
+    label: '简单', oasisCount: 5, goodEventBias: 0.1, startCoins: 300,
+    sandstormCount: 2, reputationMultiplier: 1.0
   },
   normal: {
-    label: '普通', oasisCount: 2, goodEventBias: 0, startCoins: 100,
-    sandstormCount: 2, reputationMultiplier: 1.2
+    label: '普通', oasisCount: 3, goodEventBias: 0, startCoins: 200,
+    sandstormCount: 4, reputationMultiplier: 1.2
   },
   hard: {
-    label: '困难', oasisCount: 1, goodEventBias: -0.1, startCoins: 60,
-    sandstormCount: 3, reputationMultiplier: 1.5
+    label: '困难', oasisCount: 2, goodEventBias: -0.1, startCoins: 120,
+    sandstormCount: 5, reputationMultiplier: 1.5
   }
 };
 
