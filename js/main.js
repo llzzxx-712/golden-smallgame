@@ -752,10 +752,5 @@ function init() {
     showStartScreen();
   }
 }
-  reputation = loadReputation();
-  if (!tryResume()) {
-    showStartScreen();
-  }
-}
 
 init();
