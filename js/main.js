@@ -289,9 +289,9 @@ function doRest() {
   const p = state.player;
   const node = getNodeById(state.map, p.position);
 
-  // 消耗水粮
-  p.water = Math.max(-999, p.water - 1);
-  p.food = Math.max(-999, p.food - 1);
+  // 消耗水粮 (最多扣到0)
+  p.water = Math.max(0, p.water - 1);
+  p.food = Math.max(0, p.food - 1);
   state.turn++;
 
   const thirstEvents = checkThirstHunger(state);

@@ -82,14 +82,19 @@ export function consumeStepResources(state) {
   const rate = 1 - (char.effect?.consumeReduce || 0);
   p._waterAcc = (p._waterAcc || 0) + rate;
   p._foodAcc = (p._foodAcc || 0) + rate;
-  const waterCost = Math.floor(p._waterAcc);
-  const foodCost = Math.floor(p._foodAcc);
+  let waterCost = Math.floor(p._waterAcc);
+  let foodCost = Math.floor(p._foodAcc);
   p._waterAcc -= waterCost;
   p._foodAcc -= foodCost;
-  p.water = Math.max(-999, p.water - waterCost);
-  p.food = Math.max(-999, p.food - foodCost);
+
+  // 水粮扣减：最多扣到 0，不会为负
+  const actualWaterCost = Math.min(waterCost, p.water);
+  const actualFoodCost = Math.min(foodCost, p.food);
+  p.water -= actualWaterCost;
+  p.food -= actualFoodCost;
+
   p.stamina = Math.max(-999, p.stamina - (p.items.some(i => i.id === 'camel') ? 0.5 : 1));
-  return { waterCost, foodCost };
+  return { waterCost: actualWaterCost, foodCost: actualFoodCost };
 }
 
 export function checkDead(state) {
