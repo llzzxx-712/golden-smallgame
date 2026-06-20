@@ -116,6 +116,11 @@ function renderActionButtons() {
     html += '<button class="primary" onclick="window._mineGold()">⛏️ 挖金！</button>';
   }
 
+  // 游戏说明按钮 (非结束状态下显示)
+  if (state.phase !== 'win' && state.phase !== 'dead') {
+    html += '<button onclick="window._showGuide()" style="margin-top:4px;background:#2a2a3a;font-size:13px">📖 游戏说明</button>';
+  }
+
   if (state.phase === 'win' || state.phase === 'dead') {
     const icon = state.phase === 'win' ? '🎉 胜利！' : '💀 你死了...';
     const repText = state.phase === 'win' ? `获得声望: +${state.reputationEarned || 0}` : '';
@@ -652,8 +657,101 @@ window._startTravel = () => {
   updateUI();
 };
 
+// === 游戏说明 ===
+function showGuide() {
+  showModal(`
+    <h2>📖 游戏说明</h2>
+    <div style="max-height:60vh;overflow-y:auto;font-size:14px;line-height:1.8">
+      <h3>🎯 目标</h3>
+      <p>从🏕️营地出发，穿越沙漠到达⛏️金矿挖金，然后活着返回营地。</p>
+
+      <h3>📊 资源</h3>
+      <table style="width:100%;font-size:13px">
+        <tr><td>💧 水</td><td>每步消耗1，归零渴死</td></tr>
+        <tr><td>🍖 食物</td><td>每步消耗1，归零饿死</td></tr>
+        <tr><td>❤️ HP</td><td>受伤扣减，归零死亡</td></tr>
+        <tr><td>⚡ 体力</td><td>每步消耗1(骆驼0.5)，归零无法移动</td></tr>
+        <tr><td>💰 金币</td><td>购买物资，挖金获取</td></tr>
+      </table>
+
+      <h3>🛒 道具</h3>
+      <table style="width:100%;font-size:13px">
+        <tr><td>💧 水袋 +3水</td><td>💰20</td><td>💊 药品 +30HP</td><td>💰15</td></tr>
+        <tr><td>🍖 干粮 +3食物</td><td>💰20</td><td>⛺ 帐篷 休息加成</td><td>💰35</td></tr>
+        <tr><td>🐪 骆驼 体力减半</td><td>💰70</td><td>🧭 指南针 探查</td><td>💰45</td></tr>
+        <tr><td>💠 净水片 绿洲+2水</td><td>💰20</td><td>⛽ 燃油 3步免体力</td><td>💰25</td></tr>
+      </table>
+
+      <h3>🗺️ 节点类型</h3>
+      <table style="width:100%;font-size:13px">
+        <tr><td>🏕️ 营地</td><td>起点/终点，可购买物资</td></tr>
+        <tr><td>🌵 沙漠</td><td>触发随机事件</td></tr>
+        <tr><td>💧 绿洲</td><td>免费补水+2(净水片+4)</td></tr>
+        <tr><td>🏚️ 废墟</td><td>50%找到15金币</td></tr>
+        <tr><td>🐪 商队</td><td>交易物资(价格浮动)</td></tr>
+        <tr><td>🌪️ 沙暴</td><td>到达扣10HP，休息扣体力</td></tr>
+        <tr><td>⛏️ 金矿</td><td>挖得80~120金币</td></tr>
+      </table>
+
+      <h3>💤 休息</h3>
+      <p>任意节点可休息，消耗💧1🍖1。绿洲恢复1.5体力，沙漠0.5，沙暴-0.5，其余+1。拥有帐篷额外+1.5。</p>
+
+      <h3>🎲 事件</h3>
+      <p>到达节点随机触发好/坏/中性事件。老兵角色战斗事件必胜。沙暴节点到达即扣10HP。</p>
+
+      <h3>🏆 成就</h3>
+      <p>达成特定条件自动解锁成就，每个+20声望。页面顶部弹出奖杯通知。</p>
+
+      <h3>⭐ 声望与角色</h3>
+      <p>成功返回营地结算声望(金币÷10+水×2+食物×2+HP×0.3+道具数×5+节点数×3)×难度倍率。声望可解锁新角色。</p>
+    </div>
+    <button onclick="window._hideModal()" style="margin-top:12px;width:100%">关闭</button>
+  `);
+}
+
+function showIntro() {
+  showModal(`
+    <div style="text-align:center">
+      <div style="font-size:48px;margin-bottom:8px">🏜️</div>
+      <h2>欢迎来到沙海淘金！</h2>
+      <p style="color:var(--text-dim);margin:12px 0">沙漠深处的金矿在呼唤——</p>
+      <div style="text-align:left;font-size:14px;line-height:1.8;margin:16px 0">
+        <p>🎯 <b>目标：</b>从营地出发，活着到金矿挖金，再活着回来。</p>
+        <p>📊 <b>管理资源：</b>水、食物、HP、体力——任何一项归零即死。</p>
+        <p>🛒 <b>购买物资：</b>出发前在营地商店备齐水粮和道具。</p>
+        <p>🗺️ <b>规划路线：</b>地图随机生成，迷雾笼罩，谨慎选择每一步。</p>
+        <p>🎲 <b>随机事件：</b>好运或噩运随时降临，做好应对准备。</p>
+        <p>💤 <b>适时休息：</b>体力不足时扎营恢复，但会消耗水粮。</p>
+        <p>⭐ <b>积累声望：</b>成功返回可获声望，解锁更强角色。</p>
+      </div>
+      <p style="color:var(--text-dim);font-size:13px">侧栏📖游戏说明可随时查看完整规则</p>
+      <button class="primary" onclick="window._afterIntro()" style="width:100%;padding:12px;font-size:16px;margin-top:8px">🚶 开始冒险！</button>
+    </div>
+  `);
+}
+
+window._afterIntro = () => {
+  hideModal();
+  if (!tryResume()) {
+    showStartScreen();
+  }
+};
+
+window._showGuide = showGuide;
+
 // === 初始化 ===
 function init() {
+  reputation = loadReputation();
+  const introSeen = localStorage.getItem('sahaijin_intro_seen');
+  if (!introSeen) {
+    localStorage.setItem('sahaijin_intro_seen', '1');
+    showIntro();
+    return;
+  }
+  if (!tryResume()) {
+    showStartScreen();
+  }
+}
   reputation = loadReputation();
   if (!tryResume()) {
     showStartScreen();
