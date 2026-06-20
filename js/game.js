@@ -35,7 +35,7 @@ export const CHARACTERS = {
 };
 
 export function createPlayer(characterId = 'explorer') {
-  const char = CHARACTERS[characterId];
+  const char = CHARACTERS[characterId] || CHARACTERS.explorer;
   return {
     water: 5,
     food: 5,
@@ -76,13 +76,13 @@ export function setPhase(state, phase) {
 
 export function consumeStepResources(state) {
   const p = state.player;
-  const char = CHARACTERS[p.character];
+  const char = CHARACTERS[p.character] || CHARACTERS.explorer;
   const reduce = 1 - (char.effect?.consumeReduce || 0);
-  const waterCost = Math.round(1 * reduce);
-  const foodCost = Math.round(1 * reduce);
-  p.water -= waterCost;
-  p.food -= foodCost;
-  p.stamina -= p.items.some(i => i.id === 'camel') ? 0.5 : 1;
+  const waterCost = Math.floor(1 * reduce);
+  const foodCost = Math.floor(1 * reduce);
+  p.water = Math.max(-999, p.water - waterCost);
+  p.food = Math.max(-999, p.food - foodCost);
+  p.stamina = Math.max(-999, p.stamina - (p.items.some(i => i.id === 'camel') ? 0.5 : 1));
   return { waterCost, foodCost };
 }
 
@@ -96,7 +96,7 @@ export function checkDead(state) {
 
 export function checkWin(state) {
   const p = state.player;
-  if (p.atGoldMine && state.phase === 'returning' && p.position === state.map.startNodeId) {
+  if (p.atGoldMine && state.phase === 'returning' && state.map && p.position === state.map.startNodeId) {
     setPhase(state, 'win');
     addLog(state, '🎉 你成功带着金子返回营地！');
     return true;
