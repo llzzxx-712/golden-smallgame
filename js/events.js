@@ -1,4 +1,3 @@
-import { NODE_TYPES } from './map.js';
 import { DIFFICULTIES, CHARACTERS, addLog } from './game.js';
 
 function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
@@ -39,8 +38,8 @@ export function triggerEvent(state) {
   if (Math.random() > node.eventChance) return null;
 
   const diff = DIFFICULTIES[state.difficulty] || DIFFICULTIES.normal;
-  const goodWeight = 0.40 + (diff.goodEventBias || 0) + (node.goodBias || 0);
-  const badWeight = 0.35 - (diff.goodEventBias || 0) - (node.goodBias || 0);
+  const goodWeight = Math.max(0, 0.40 + (diff.goodEventBias || 0) + (node.goodBias || 0));
+  const badWeight = Math.max(0, 0.35 - (diff.goodEventBias || 0) - (node.goodBias || 0));
   const neutralWeight = 1 - goodWeight - badWeight;
 
   const roll = Math.random();
@@ -77,6 +76,15 @@ export function applyEvent(state, event) {
   }
 
   const eff = event.effect;
+
+  // 强盗分支：金币不够时扣血
+  if (event.id === 'bandits' && event.orEffect && state.player.coins < 25) {
+    const hpLoss = event.orEffect.hp || 0;
+    state.player.hp = clamp(state.player.hp + hpLoss, 0, state.player.maxHp);
+    addLog(state, `😨 金币不够，${event.orDesc || '你被打伤了...'}`);
+    return;
+  }
+
   if (eff.water)  p.water  = clamp(p.water + eff.water, 0, 999);
   if (eff.food)   p.food   = clamp(p.food + eff.food, 0, 999);
   if (eff.hp)     p.hp     = clamp(p.hp + eff.hp, 0, p.maxHp);
@@ -93,16 +101,7 @@ export function applyEvent(state, event) {
     state.player.position = prevNodeId;
   }
 
-  // 强盗选择反抗分支
-  if (event.id === 'bandits' && event.orEffect && p.coins < 25) {
-    // Not enough coins, take HP damage instead
-    if (eff.hp) p.hp = clamp(p.hp + (event.orEffect.hp || 0), 0, p.maxHp);
-    addLog(state, `😨 金币不够，${event.orDesc || '你被打伤了...'}`);
-    return;
-  }
-
   if (eff.freeStep) {
-    // refund stamina for the step that triggered this
     p.stamina = clamp(p.stamina + 1, 0, p.maxStamina);
   }
 }
