@@ -1,4 +1,4 @@
-import { createGameState, DIFFICULTIES, CHARACTERS, ITEM_TEMPLATES, addLog, setPhase, consumeStepResources, checkDead } from './game.js';
+import { createGameState, DIFFICULTIES, CHARACTERS, ITEM_TEMPLATES, addLog, setPhase, consumeStepResources, checkDead, checkThirstHunger } from './game.js';
 import { generateMap, renderMap, getAdjacentNodes, getNodeById, getNodesInRange } from './map.js';
 import { triggerEvent, applyEvent } from './events.js';
 import { getShopItems, buyItem } from './shop.js';
@@ -174,12 +174,28 @@ function moveTo(nodeId) {
     for (const nid of newRevealed) state.revealedNodes.add(nid);
   }
 
+  // 检查口渴/饥饿 (可能返回要展示的事件)
+  const thirstEvents = checkThirstHunger(state);
   if (checkDead(state)) {
     reputation.stats.gamesPlayed++;
     reputation.stats.deaths++;
     saveReputation(reputation);
     saveGame(state);
     updateUI();
+    return;
+  }
+  if (thirstEvents && thirstEvents.length > 0) {
+    showSurvivalEvents(thirstEvents, 0, () => {
+      if (checkDead(state)) {
+        reputation.stats.gamesPlayed++;
+        reputation.stats.deaths++;
+        saveReputation(reputation);
+        saveGame(state);
+        updateUI();
+        return;
+      }
+      handleNodeArrival(targetNode);
+    });
     return;
   }
 
@@ -278,16 +294,35 @@ function doRest() {
   p.food = Math.max(-999, p.food - 1);
   state.turn++;
 
+  const thirstEvents = checkThirstHunger(state);
   if (checkDead(state)) {
     reputation.stats.gamesPlayed++;
     reputation.stats.deaths++;
     saveReputation(reputation);
     saveGame(state);
-    runAchievementCheck();
     updateUI();
     return;
   }
+  if (thirstEvents && thirstEvents.length > 0) {
+    showSurvivalEvents(thirstEvents, () => {
+      if (checkDead(state)) {
+        reputation.stats.gamesPlayed++;
+        reputation.stats.deaths++;
+        saveReputation(reputation);
+        runAchievementCheck();
+        updateUI();
+        return;
+      }
+      doRestContinue(node);
+    });
+    return;
+  }
 
+  doRestContinue(node);
+}
+
+function doRestContinue(node) {
+  const p = state.player;
   const amount = getRestAmount(node, p);
   p.stamina = Math.min(p.maxStamina, p.stamina + amount);
 
@@ -561,7 +596,7 @@ function startGame() {
   state.map = generateMap(chosenDifficulty, 800, 500);
   state.player.position = state.map.startNodeId;
   state.player.visitedNodes = [state.map.startNodeId];
-  state.revealedNodes = new Set(getNodesInRange(state.map, state.map.startNodeId, 1));
+  state.revealedNodes = new Set(getNodesInRange(state.map, state.map.startNodeId, 2));
   setPhase(state, 'prepare');
   addLog(state, `🟢 你选择了「${CHARACTERS[chosenCharacter].name}」，准备出发！`);
   saveGame(state);
@@ -780,6 +815,41 @@ window._afterIntro = () => {
 };
 
 window._showGuide = showGuide;
+
+let _survivalEvents = null;
+let _survivalIndex = 0;
+let _survivalDone = null;
+
+function showNextSurvival() {
+  if (_survivalIndex >= _survivalEvents.length) {
+    _survivalEvents = null;
+    if (_survivalDone) { const cb = _survivalDone; _survivalDone = null; cb(); }
+    return;
+  }
+  const ev = _survivalEvents[_survivalIndex];
+  _survivalIndex++;
+  const icon = ev.type === 'thirst' ? '💧' : '🍖';
+  showModal(`
+    <div style="text-align:center;margin-bottom:16px">
+      <span style="font-size:40px;display:block;margin-bottom:8px">${icon}</span>
+      <h2 style="color:var(--danger);margin:0">😨 ${ev.name}</h2>
+      <p style="color:var(--text);font-size:15px;line-height:1.6;margin-top:8px">${ev.desc}</p>
+      <div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;font-size:14px;color:var(--danger)">
+        ❤️ HP -${ev.hpLoss}
+      </div>
+    </div>
+    <button class="primary" onclick="window._hideModal();window._survNext()" style="width:100%;padding:12px;font-size:16px">确定</button>
+  `);
+}
+
+function showSurvivalEvents(events, onDone) {
+  _survivalEvents = events;
+  _survivalIndex = 0;
+  _survivalDone = onDone;
+  showNextSurvival();
+}
+
+window._survNext = showNextSurvival;
 
 // === 快速移动 ===
 function toggleQuickMove() {

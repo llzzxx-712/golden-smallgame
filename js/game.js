@@ -19,10 +19,10 @@ export const ITEM_TEMPLATES = {
   water_bag:  { id: 'water_bag',  name: '水袋',  icon: '💧', effect: { water: 3 }, price: 20 },
   dried_food: { id: 'dried_food', name: '干粮',  icon: '🍖', effect: { food: 3 },  price: 20 },
   medicine:   { id: 'medicine',   name: '药品',  icon: '💊', effect: { hp: 30 },    price: 15 },
-  camel:      { id: 'camel',      name: '骆驼',  icon: '🐪', effect: { camel: true }, price: 70, permanent: true, unique: true },
+  camel:      { id: 'camel',      name: '骆驼',  icon: '🐪', effect: { camel: true }, price: 60, permanent: true, unique: true },
   tent:       { id: 'tent',       name: '帐篷',  icon: '⛺', effect: { tentBonus: 1.5 }, price: 35, permanent: true, unique: true },
   compass:    { id: 'compass',    name: '指南针', icon: '🧭', effect: { compass: 1 }, price: 45, permanent: true, unique: true },
-  tablet:     { id: 'tablet',     name: '净水片', icon: '💠', effect: { oasisBonus: 2 }, price: 20, permanent: true, unique: true },
+  tablet:     { id: 'tablet',     name: '净水片', icon: '💠', effect: { oasisBonus: 2 }, price: 30, permanent: true, unique: true },
   fuel:       { id: 'fuel',       name: '燃油',   icon: '⛽', effect: { fuelSteps: 3 }, price: 25, permanent: true },
 };
 
@@ -94,10 +94,53 @@ export function consumeStepResources(state) {
 
 export function checkDead(state) {
   const p = state.player;
-  if (p.water <= 0) { setPhase(state, 'dead'); addLog(state, '💀 你渴死在沙漠中...'); return true; }
-  if (p.food <= 0) { setPhase(state, 'dead'); addLog(state, '💀 你饿死在沙漠中...'); return true; }
   if (p.hp <= 0) { setPhase(state, 'dead'); addLog(state, '💀 你倒在了沙丘上...'); return true; }
-  return false;
+  return state.phase === 'dead';
+}
+
+export function checkThirstHunger(state) {
+  const p = state.player;
+  const events = [];
+
+  if (p.water <= 0) {
+    p._thirstStage = (p._thirstStage || 0) + 1;
+    if (p._thirstStage >= 3) {
+      addLog(state, '💀 你渴死在沙漠中...');
+      setPhase(state, 'dead');
+      return [];
+    }
+    const hpLoss = p._thirstStage === 1 ? 30 : 60;
+    p.hp = Math.max(0, p.hp - hpLoss);
+    events.push({
+      name: p._thirstStage === 1 ? '口渴' : '严重缺水',
+      desc: p._thirstStage === 1 ? '水已耗尽，你感到口干舌燥...' : '极度缺水，身体正在衰竭...',
+      category: 'bad',
+      hpLoss,
+    });
+  } else {
+    p._thirstStage = 0;
+  }
+
+  if (p.food <= 0) {
+    p._hungerStage = (p._hungerStage || 0) + 1;
+    if (p._hungerStage >= 3) {
+      addLog(state, '💀 你饿死在沙漠中...');
+      setPhase(state, 'dead');
+      return [];
+    }
+    const hpLoss = p._hungerStage === 1 ? 30 : 60;
+    p.hp = Math.max(0, p.hp - hpLoss);
+    events.push({
+      name: p._hungerStage === 1 ? '饥饿' : '严重缺食',
+      desc: p._hungerStage === 1 ? '食物已耗尽，你感到饥肠辘辘...' : '极度饥饿，身体正在消耗自身...',
+      category: 'bad',
+      hpLoss,
+    });
+  } else {
+    p._hungerStage = 0;
+  }
+
+  return events;
 }
 
 export function checkWin(state) {
