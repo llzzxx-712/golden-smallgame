@@ -139,6 +139,9 @@ function renderActionButtons() {
 // === 游戏操作 ===
 function moveTo(nodeId) {
   if (state.phase !== 'travel' && state.phase !== 'returning') return;
+  lastClickedNodeId = null;
+  if (highlightedBtn) { highlightedBtn.classList.remove('highlighted'); highlightedBtn = null; }
+  document.getElementById('node-tooltip').classList.add('hidden');
 
   const p = state.player;
   const targetNode = getNodeById(state.map, nodeId);
@@ -464,6 +467,26 @@ function runAchievementCheck() {
   if (newAch.length > 0) saveReputation(reputation);
 }
 
+function showConfirmModal(node, dirText) {
+  showModal(`
+    <div style="text-align:center">
+      <span style="font-size:36px;display:block;margin-bottom:8px">${node.icon}</span>
+      <h3 style="margin:0">${dirText} ${node.label}</h3>
+      <p style="color:var(--text-dim);margin:8px 0">${getNodeDesc(node)}</p>
+      <button class="primary" onclick="window._confirmMove(${node.id})" style="width:100%;padding:12px;font-size:16px;margin-bottom:6px">✅ 确定前往</button>
+      <button onclick="window._hideModal()" style="width:100%">取消</button>
+    </div>
+  `);
+}
+
+window._confirmMove = (nodeId) => {
+  hideModal();
+  lastClickedNodeId = null;
+  if (highlightedBtn) { highlightedBtn.classList.remove('highlighted'); highlightedBtn = null; }
+  document.getElementById('node-tooltip').classList.add('hidden');
+  moveTo(nodeId);
+};
+
 // === 弹窗 ===
 function showModal(html) {
   modalBox.innerHTML = html;
@@ -759,6 +782,7 @@ window._showGuide = showGuide;
 
 // === 地图点击 ===
 let highlightedBtn = null;
+let lastClickedNodeId = null;
 
 canvas.addEventListener('click', (e) => {
   if (!state || !state.map) return;
@@ -770,18 +794,10 @@ canvas.addEventListener('click', (e) => {
   const gx = mx * 800 / rect.width;
   const gy = my * 500 / rect.height;
 
-  // 清除之前的高亮
-  if (highlightedBtn) {
-    highlightedBtn.classList.remove('highlighted');
-    highlightedBtn = null;
-  }
-  const tooltip = document.getElementById('node-tooltip');
-  tooltip.classList.add('hidden');
-
-  // 搜索所有已揭示节点 (不止相邻)
+  // 搜索所有已揭示节点
   const revealed = state.revealedNodes || new Set();
   let closestNode = null;
-  let closestDist = 25; // 命中阈值
+  let closestDist = 25;
 
   for (const nid of revealed) {
     const node = getNodeById(state.map, nid);
@@ -789,40 +805,52 @@ canvas.addEventListener('click', (e) => {
     const dx = gx - node.x;
     const dy = gy - node.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < closestDist) {
-      closestDist = dist;
-      closestNode = node;
-    }
+    if (dist < closestDist) { closestDist = dist; closestNode = node; }
   }
 
-  if (!closestNode) return;
+  if (!closestNode) {
+    lastClickedNodeId = null;
+    return;
+  }
+
+  const isAdjacent = getAdjacentNodes(state.map, state.player.position).includes(closestNode.id);
+
+  // 双击同一个相邻节点 → 确认前往
+  if (closestNode.id === lastClickedNodeId && isAdjacent) {
+    const curNode = getNodeById(state.map, state.player.position);
+    const isReturn = curNode && closestNode.col < curNode.col;
+    const dirText = isReturn ? '⬅️返回' : '➡️前往';
+    showConfirmModal(closestNode, dirText);
+    return;
+  }
+
+  // 记录当前点击
+  lastClickedNodeId = closestNode.id;
+
+  // 清除之前的高亮
+  if (highlightedBtn) { highlightedBtn.classList.remove('highlighted'); highlightedBtn = null; }
+  const tooltip = document.getElementById('node-tooltip');
+  tooltip.classList.add('hidden');
 
   // 仅相邻节点高亮按钮
-  const adj = getAdjacentNodes(state.map, state.player.position);
-  const isAdjacent = adj.includes(closestNode.id);
   if (isAdjacent) {
-    const btnId = `mvbtn-${closestNode.id}`;
-    const btn = document.getElementById(btnId);
-    if (btn) {
-      btn.classList.add('highlighted');
-      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      highlightedBtn = btn;
-    }
+    const btn = document.getElementById(`mvbtn-${closestNode.id}`);
+    if (btn) { btn.classList.add('highlighted'); btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); highlightedBtn = btn; }
   }
 
-  // 显示提示
+  // 显示提示 (含再点触达提示)
   const curNode = getNodeById(state.map, state.player.position);
   const isReturn = curNode && closestNode.col < curNode.col;
   const dirText = isAdjacent ? (isReturn ? '⬅️返回' : '➡️前往') : '👁️';
-  const rowText = curNode && closestNode.row < curNode.row ? ' △上方' :
-                  curNode && closestNode.row > curNode.row ? ' ▽下方' : '';
+  const rowText = curNode && closestNode.row < curNode.row ? ' △上方' : curNode && closestNode.row > curNode.row ? ' ▽下方' : '';
+  const clickHint = isAdjacent ? '<br><span style="font-size:10px;color:var(--gold)">再次点击确认前往</span>' : '';
   const desc = getNodeDesc(closestNode);
-  tooltip.innerHTML = `${dirText} ${closestNode.icon} ${closestNode.label}${rowText}<br><span style="font-size:11px;color:var(--text-dim)">${desc}</span>`;
+  tooltip.innerHTML = `${dirText} ${closestNode.icon} ${closestNode.label}${rowText}${clickHint}<br><span style="font-size:11px;color:var(--text-dim)">${desc}</span>`;
   tooltip.classList.remove('hidden');
-  const nodeScreenX = closestNode.x * rect.width / 800;
-  const nodeScreenY = closestNode.y * rect.height / 500;
-  tooltip.style.left = Math.min(nodeScreenX + 30, rect.width - 180) + 'px';
-  tooltip.style.top = Math.max(nodeScreenY - 40, 4) + 'px';
+  const nsx = closestNode.x * rect.width / 800;
+  const nsy = closestNode.y * rect.height / 500;
+  tooltip.style.left = Math.min(nsx + 30, rect.width - 200) + 'px';
+  tooltip.style.top = Math.max(nsy - 50, 4) + 'px';
 });
 
 function getNodeDesc(node) {
