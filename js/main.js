@@ -258,10 +258,8 @@ function useItem(itemId) {
 
 function useCompass() {
   const p = state.player;
-  const idx = p.items.findIndex(i => i.id === 'compass');
-  if (idx === -1) return;
-  p.items.splice(idx, 1);
-  // 揭示距离2的节点
+  if (!p.items.some(i => i.id === 'compass')) return;
+  // 揭示距离2的节点（指南针不消耗）
   if (state.revealedNodes) {
     const range2 = getNodesInRange(state.map, p.position, 2);
     let revealed = 0;
@@ -339,6 +337,7 @@ window._dismissEvent = () => {
   const cb = afterEventCallback;
   pendingEvent = null;
   afterEventCallback = null;
+  hideModal();
   if (event && cb) {
     applyEvent(state, event);
     cb();

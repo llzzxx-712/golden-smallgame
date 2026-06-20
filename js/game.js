@@ -9,7 +9,7 @@ export const DIFFICULTIES = {
     sandstormCount: 4, reputationMultiplier: 1.2
   },
   hard: {
-    label: '困难', oasisCount: 2, goodEventBias: -0.1, startCoins: 120,
+    label: '困难', oasisCount: 2, goodEventBias: -0.1, startCoins: 150,
     sandstormCount: 5, reputationMultiplier: 1.5
   }
 };
@@ -19,9 +19,9 @@ export const ITEM_TEMPLATES = {
   water_bag:  { id: 'water_bag',  name: '水袋',  icon: '💧', effect: { water: 3 }, price: 15 },
   dried_food: { id: 'dried_food', name: '干粮',  icon: '🍖', effect: { food: 3 },  price: 15 },
   medicine:   { id: 'medicine',   name: '药品',  icon: '💊', effect: { hp: 30 },    price: 25 },
-  camel:      { id: 'camel',      name: '骆驼',  icon: '🐪', effect: { camel: true }, price: 50, permanent: true, unique: true },
+  camel:      { id: 'camel',      name: '骆驼',  icon: '🐪', effect: { camel: true }, price: 80, permanent: true, unique: true },
   tent:       { id: 'tent',       name: '帐篷',  icon: '⛺', effect: { tent: 1 },    price: 30, consumable: true },
-  compass:    { id: 'compass',    name: '指南针', icon: '🧭', effect: { compass: 1 }, price: 20, consumable: true },
+  compass:    { id: 'compass',    name: '指南针', icon: '🧭', effect: { compass: 1 }, price: 50, permanent: true, unique: true },
   tablet:     { id: 'tablet',     name: '净水片', icon: '💠', effect: { oasisBonus: 2 }, price: 10, permanent: true, unique: true },
   fuel:       { id: 'fuel',       name: '燃油',   icon: '⛽', effect: { fuelSteps: 3 }, price: 20, permanent: true, unique: true },
 };
