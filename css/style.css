@@ -58,7 +58,9 @@ body {
   gap: 10px;
   padding: 10px;
   overflow-y: auto;
+  scrollbar-width: none;
 }
+#sidebar::-webkit-scrollbar { display: none; }
 
 .panel {
   background: var(--bg);

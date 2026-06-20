@@ -23,7 +23,7 @@ export const ITEM_TEMPLATES = {
   tent:       { id: 'tent',       name: '帐篷',  icon: '⛺', effect: { tentBonus: 1.5 }, price: 35, permanent: true, unique: true },
   compass:    { id: 'compass',    name: '指南针', icon: '🧭', effect: { compass: 1 }, price: 45, permanent: true, unique: true },
   tablet:     { id: 'tablet',     name: '净水片', icon: '💠', effect: { oasisBonus: 2 }, price: 20, permanent: true, unique: true },
-  fuel:       { id: 'fuel',       name: '燃油',   icon: '⛽', effect: { fuelSteps: 3 }, price: 25, permanent: true, unique: true },
+  fuel:       { id: 'fuel',       name: '燃油',   icon: '⛽', effect: { fuelSteps: 3 }, price: 25, permanent: true },
 };
 
 // 角色模板

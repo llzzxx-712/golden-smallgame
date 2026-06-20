@@ -89,8 +89,12 @@ function renderActionButtons() {
         html += `<button ${dirClass} onclick="window._moveTo(${nid})">${dirIcon} ${dirLabel} ${node.icon} ${node.label}${posLabel}</button>`;
       }
     }
-    // 休息按钮（始终可用）
+    // 绿洲采摘
     const curNode2 = getNodeById(state.map, p.position);
+    if (curNode2 && curNode2.type === 'oasis') {
+      html += '<button onclick="window._harvestOasis()" style="background:#2a3a20">🍎 采摘果实 (+1🍖 -1💧)</button>';
+    }
+    // 休息按钮（始终可用）
     const restBonus = getRestAmount(curNode2, p);
     html += `<button onclick="window._doRest()" style="background:#2a3a30">💤 休息 (恢复 ${restBonus} 体力)</button>`;
     for (const item of p.items) {
@@ -349,6 +353,14 @@ function useFuel() {
   p.items.splice(idx, 1);
   p._fuelSteps = (p._fuelSteps || 0) + 3;
   addLog(state, '⛽ 使用了燃油，接下来 3 步不耗体力！');
+  updateUI();
+}
+
+function harvestOasis() {
+  const p = state.player;
+  p.food = Math.min(999, p.food + 1);
+  p.water = Math.max(0, p.water - 1);
+  addLog(state, '🍎 你在绿洲采摘了果实，+1🍖 -1💧');
   updateUI();
 }
 
@@ -631,6 +643,7 @@ window._doRest = doRest;
 window._useItem = useItem;
 window._useCompass = useCompass;
 window._useFuel = useFuel;
+window._harvestOasis = harvestOasis;
 window._mineGold = mineGold;
 window._hideModal = hideModal;
 window._showStartScreen = showStartScreen;
