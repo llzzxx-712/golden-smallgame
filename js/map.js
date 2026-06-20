@@ -19,7 +19,7 @@ function shuffle(arr) {
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-function pickNodeType(diff, col) {
+function pickNodeType(diff) {
   const roll = Math.random();
   // diff: 1=easy, 2=normal, 3=hard
   const oasisWeight = 0.25 - (diff - 2) * 0.1;
@@ -64,9 +64,9 @@ export function generateMap(difficulty = 'normal', canvasWidth = 800, canvasHeig
   // 中间列 (1-3) 放置节点
   for (let col = 1; col < cols - 1; col++) {
     const count = randInt(1, rows);
-    const selectedRows = shuffle([0, 1, 2]).slice(0, count);
+    const selectedRows = shuffle(Array.from({ length: rows }, (_, i) => i)).slice(0, count);
     for (const row of selectedRows) {
-      let type = pickNodeType(diff, col);
+      let type = pickNodeType(diff);
       const node = { id: nextId(), ...type, col, row };
       nodes.push(node);
     }
@@ -160,18 +160,21 @@ export function getNodeById(map, nodeId) {
 }
 
 export function renderMap(canvas, map, state) {
+  if (!canvas || !map || !map.nodes || !map.edges) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
   const w = rect.width;
   const h = rect.height;
+  const sx = w / 800;
+  const sy = h / 500;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr * sx, 0, 0, dpr * sy, 0, 0);
 
   // 背景
   ctx.fillStyle = '#1a1625';
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillRect(0, 0, 800, 500);
 
   // 画边
   for (const e of map.edges) {
