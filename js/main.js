@@ -81,8 +81,11 @@ function renderActionButtons() {
         const isReturn = node.col < curNode.col;
         const dirIcon = isReturn ? '⬅️' : '➡️';
         const dirLabel = isReturn ? '返回' : '前往';
-        const dirClass = isReturn ? 'style="background:#3a2a30"' : '';
-        html += `<button ${dirClass} onclick="window._moveTo(${nid})">${dirIcon} ${dirLabel} ${node.icon} ${node.label}</button>`;
+        const dirClass = isReturn ? 'style="background:#2a3030"' : '';
+        let posLabel = '';
+        if (node.row < curNode.row) posLabel = ' △';
+        else if (node.row > curNode.row) posLabel = ' ▽';
+        html += `<button ${dirClass} onclick="window._moveTo(${nid})">${dirIcon} ${dirLabel} ${node.icon} ${node.label}${posLabel}</button>`;
       }
     }
     // 休息按钮（始终可用）
