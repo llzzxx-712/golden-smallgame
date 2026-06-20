@@ -1,12 +1,12 @@
-// 节点类型
+// 节点类型 (icon 用于 DOM / canvasLabel 用于 Canvas 渲染)
 export const NODE_TYPES = {
-  camp:      { type: 'camp',      icon: '🏕',  label: '营地',  eventChance: 0 },
-  desert:    { type: 'desert',    icon: '🌵',  label: '沙漠',  eventChance: 1 },
-  oasis:     { type: 'oasis',     icon: '💧',  label: '绿洲',  eventChance: 0.5, goodBias: 0.2 },
-  ruins:     { type: 'ruins',     icon: '🏚',  label: '废墟',  eventChance: 0.8, goodBias: 0.15 },
-  caravan:   { type: 'caravan',   icon: '🐪',  label: '商队',  eventChance: 0 },
-  goldMine:  { type: 'goldMine',  icon: '⛏',  label: '金矿',  eventChance: 0 },
-  sandstorm: { type: 'sandstorm', icon: '🌪',  label: '沙暴',  eventChance: 0.9, goodBias: -0.4 },
+  camp:      { type: 'camp',      icon: '🏕', canvasLabel: '营', label: '营地',  eventChance: 0 },
+  desert:    { type: 'desert',    icon: '🌵', canvasLabel: '沙', label: '沙漠',  eventChance: 1 },
+  oasis:     { type: 'oasis',     icon: '💧', canvasLabel: '泉', label: '绿洲',  eventChance: 0.5, goodBias: 0.2 },
+  ruins:     { type: 'ruins',     icon: '🏚', canvasLabel: '墟', label: '废墟',  eventChance: 0.8, goodBias: 0.15 },
+  caravan:   { type: 'caravan',   icon: '🐪', canvasLabel: '商', label: '商队',  eventChance: 0 },
+  goldMine:  { type: 'goldMine',  icon: '⛏', canvasLabel: '金', label: '金矿',  eventChance: 0 },
+  sandstorm: { type: 'sandstorm', icon: '🌪', canvasLabel: '暴', label: '沙暴',  eventChance: 0.9, goodBias: -0.4 },
 };
 
 function shuffle(arr) {
@@ -250,7 +250,7 @@ export function renderMap(canvas, map, state, revealedNodes = null) {
       ctx.strokeStyle = '#252033';
       ctx.lineWidth = 1.5;
       ctx.stroke();
-      ctx.font = '14px sans-serif';
+      ctx.font = 'bold 13px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#3a3348';
@@ -299,9 +299,14 @@ export function renderMap(canvas, map, state, revealedNodes = null) {
     ctx.lineWidth = isPlayer ? 3 : 2;
     ctx.stroke();
 
-    ctx.font = '18px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+    ctx.font = 'bold 16px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(n.icon, n.x, n.y);
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 3;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(n.canvasLabel || n.icon, n.x, n.y);
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
   }
 }
