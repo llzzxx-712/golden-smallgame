@@ -9,11 +9,12 @@ export const EVENTS = {
     { id: 'kind_traveler', name: '好心旅人',    desc: '路过的旅人分享了干粮和金币。',       effect: { coins: 20 } },
     { id: 'abandoned_camp',name: '废弃营地',    desc: '你找到了一个废弃的营地，可以免费扎营。', effect: { tent: 1 } },
     { id: 'clear_sky',     name: '晴天微风',    desc: '今天天气极好，行走特别轻松。',       effect: { freeStep: true } },
+    { id: 'heal_herb',     name: '沙漠药草',    desc: '你发现了一片珍贵的沙漠药草！',       effect: { hp: 20 } },
   ],
   neutral: [
     { id: 'minecart',      name: '废弃矿车',    desc: '一辆破旧的矿车躺在沙中...',          effect: { coins: 15 }, chance: 0.5, failDesc: '矿车是空的，什么也没有。' },
-    { id: 'shortcut',      name: '岔路发现',    desc: '你发现了一条被遗忘的捷径！',          effect: { shortcut: true } },
-    { id: 'lookout',       name: '沙丘瞭望',    desc: '登上沙丘，你看到了周围的地形...',     effect: { reveal: 2 } },
+    { id: 'shortcut',      name: '岔路发现',    desc: '你发现了一条被遗忘的捷径，视野大幅扩展！', effect: { reveal: 3, freeStep: true } },
+    { id: 'lookout',       name: '沙丘瞭望',    desc: '登上沙丘，你看到了周围的地形...',        effect: { reveal: 2 } },
     { id: 'nothing',       name: '空无一物',    desc: '放眼望去，只有无尽的黄沙...',         effect: {} },
   ],
   bad: [
@@ -23,6 +24,7 @@ export const EVENTS = {
     { id: 'lost',          name: '迷路',        desc: '你在沙暴中迷失了方向...',             effect: { stamina: -1, retreat: true } },
     { id: 'broken_bag',    name: '水袋破损',    desc: '你不小心摔破了水袋！',                effect: { water: -3 } },
     { id: 'heatstroke',    name: '中暑',        desc: '烈日当头，你感到头晕目眩...',         effect: { hp: -15, stamina: -1 } },
+    { id: 'snake_bite',    name: '毒蛇咬伤',    desc: '一条毒蛇从岩石下窜出咬了你！',        effect: { hp: -20 } },
   ],
 };
 

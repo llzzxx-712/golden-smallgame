@@ -83,6 +83,7 @@ export function settleReputation(state) {
     earned += Math.floor((p.coins || 0) / 10);
     earned += (p.water || 0) * 2;
     earned += (p.food || 0) * 2;
+    earned += Math.floor((p.hp || 0) * 0.5);
     earned += (p.items?.length || 0) * 5;
     earned += (p.visitedNodes?.length || 0) * 3;
   }

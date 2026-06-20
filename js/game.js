@@ -49,6 +49,8 @@ export function createPlayer(characterId = 'explorer') {
     position: null,
     visitedNodes: [],
     atGoldMine: false,
+    _waterAcc: 0,
+    _foodAcc: 0,
   };
 }
 
@@ -77,9 +79,13 @@ export function setPhase(state, phase) {
 export function consumeStepResources(state) {
   const p = state.player;
   const char = CHARACTERS[p.character] || CHARACTERS.explorer;
-  const reduce = 1 - (char.effect?.consumeReduce || 0);
-  const waterCost = Math.floor(1 * reduce);
-  const foodCost = Math.floor(1 * reduce);
+  const rate = 1 - (char.effect?.consumeReduce || 0);
+  p._waterAcc = (p._waterAcc || 0) + rate;
+  p._foodAcc = (p._foodAcc || 0) + rate;
+  const waterCost = Math.floor(p._waterAcc);
+  const foodCost = Math.floor(p._foodAcc);
+  p._waterAcc -= waterCost;
+  p._foodAcc -= foodCost;
   p.water = Math.max(-999, p.water - waterCost);
   p.food = Math.max(-999, p.food - foodCost);
   p.stamina = Math.max(-999, p.stamina - (p.items.some(i => i.id === 'camel') ? 0.5 : 1));

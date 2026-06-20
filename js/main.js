@@ -242,7 +242,8 @@ function getRestAmount(node, player) {
   if (!node) return 1;
   let amount = 1; // 默认
   if (node.type === 'oasis') amount = 1.5;
-  else if (node.type === 'desert' || node.type === 'sandstorm') amount = 0.5;
+  else if (node.type === 'desert') amount = 0.5;
+  else if (node.type === 'sandstorm') amount = -0.5;
   // 帐篷额外加成
   if (player.items.some(i => i.id === 'tent')) amount += 1.5;
   return amount;
@@ -268,7 +269,24 @@ function doRest() {
 
   const amount = getRestAmount(node, p);
   p.stamina = Math.min(p.maxStamina, p.stamina + amount);
-  addLog(state, `💤 休息了一晚，恢复了 ${amount} 体力。消耗 💧1 🍖1`);
+
+  if (node.type === 'sandstorm') {
+    addLog(state, `🌪️ 在沙暴中艰难休息，体力 ${amount > 0 ? '+' : ''}${amount}。消耗 💧1 🍖1`);
+  } else {
+    addLog(state, `💤 休息了一晚，恢复了 ${amount} 体力。消耗 💧1 🍖1`);
+  }
+
+  // 沙暴中体力耗尽则死
+  if (p.stamina <= 0) {
+    addLog(state, '💀 沙暴将你吞噬，体力耗尽无法离开...');
+    setPhase(state, 'dead');
+    reputation.stats.gamesPlayed++;
+    reputation.stats.deaths++;
+    saveReputation(reputation);
+    saveGame(state);
+    updateUI();
+    return;
+  }
 
   // 触发事件
   const event = triggerEvent(state);
@@ -376,6 +394,12 @@ window._dismissEvent = () => {
   hideModal();
   if (event && cb) {
     applyEvent(state, event);
+    // 揭示效果
+    if (event.effect && event.effect.reveal && state.revealedNodes) {
+      const rangeN = getNodesInRange(state.map, state.player.position, event.effect.reveal);
+      for (const nid of rangeN) state.revealedNodes.add(nid);
+      addLog(state, `👁️ 揭示了 ${rangeN.length} 个节点的视野！`);
+    }
     cb();
   }
 };
